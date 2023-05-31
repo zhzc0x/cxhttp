@@ -1,4 +1,4 @@
-package com.github.zicheng2019.bean
+package com.zicheng.demo.bean
 
 data class UserInfo(val name: String,
                     val age: Int,

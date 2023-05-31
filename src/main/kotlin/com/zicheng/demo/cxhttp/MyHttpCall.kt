@@ -1,4 +1,4 @@
-package com.github.zicheng2019.cxhttp
+package com.zicheng.demo.cxhttp
 
 import JSON_PROJECTS
 import JSON_USER_INFO

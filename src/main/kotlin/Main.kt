@@ -1,7 +1,7 @@
-import com.github.zicheng2019.bean.MyHttpResult
-import com.github.zicheng2019.bean.ProjectInfo
-import com.github.zicheng2019.bean.UserInfo
-import com.github.zicheng2019.cxhttp.MyHttpCall
+import com.zicheng.demo.bean.MyHttpResult
+import com.zicheng.demo.bean.ProjectInfo
+import com.zicheng.demo.bean.UserInfo
+import com.zicheng.demo.cxhttp.MyHttpCall
 import com.zicheng.net.cxhttp.CxHttp
 import com.zicheng.net.cxhttp.CxHttpHelper
 import com.zicheng.net.cxhttp.converter.JacksonConverter
@@ -31,7 +31,7 @@ const val JSON_PROJECTS = "{\n" +
         "            \"url\":\"https://github.com/zicheng2019/banner-android.git\",\n" +
         "            \"groupId\":\"banner-android\",\n" +
         "            \"artifactId\":\"com.github.zicheng2019\",\n" +
-        "            \"version\":\"1.0.4\",\n" +
+        "            \"version\":\"1.0.5\",\n" +
         "            \"mavenUrl\":\"https://jitpack.io\",\n" +
         "            \"desc\":\"Android Kotlin基于ViewPage2和ViewBinding的轻量级BannerView轮播图；简洁、高效、功能强大，一行代码轻松实现循环轮播，一屏三页任意变，Item样式任意定制扩展\"\n" +
         "        },\n" +
@@ -40,7 +40,7 @@ const val JSON_PROJECTS = "{\n" +
         "            \"url\":\"https://github.com/zicheng2019/linechart-android.git\",\n" +
         "            \"groupId\":\"linechart-android\",\n" +
         "            \"artifactId\":\"com.github.zicheng2019\",\n" +
-        "            \"version\":\"1.0.0\",\n" +
+        "            \"version\":\"1.0.4\",\n" +
         "            \"mavenUrl\":\"https://jitpack.io\",\n" +
         "            \"desc\":\"LineChartView（折线图，动态折线图）静态波形绘制View，LiveLineChartView（实时折线图）动态实时波形绘制View，简单易用\"\n" +
         "        }\n" +

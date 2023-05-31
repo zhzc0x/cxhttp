@@ -1,4 +1,4 @@
-package com.github.zicheng2019.bean
+package com.zicheng.demo.bean
 
 import com.zicheng.net.cxhttp.entity.CxHttpResult
 
