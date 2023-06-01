@@ -1,7 +1,7 @@
 package com.zicheng.net.cxhttp.converter
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.json.JsonWriteFeature
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
@@ -16,18 +16,27 @@ import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.*
 
-class JacksonConverter(override val resultClass: Class<*>): CxHttpConverter {
+class JacksonConverter @JvmOverloads constructor(override val resultClass: Class<*>, private var _jsonMapper: JsonMapper? = null,
+                       onConfiguration: ((JsonMapper.Builder) -> Unit)? = null): CxHttpConverter {
 
     override val contentType: String = CxHttpHelper.CONTENT_TYPE_JSON
+    private val jsonMapper: JsonMapper
+        get() = _jsonMapper!!
 
-    val jsonMapper = JsonMapper().apply {
-        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        configure(JsonGenerator.Feature.QUOTE_NON_NUMERIC_NUMBERS, true)
-        configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-        setSerializationInclusion(JsonInclude.Include.NON_NULL)
-        dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        registerModule(KotlinModule.Builder().build())
+    init {
+        if(_jsonMapper == null){
+            val builder = JsonMapper.builder().apply {
+                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                configure(JsonWriteFeature.WRITE_NAN_AS_STRINGS, true)
+                configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                defaultDateFormat(SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()))
+                serializationInclusion(JsonInclude.Include.NON_NULL)
+                addModule(KotlinModule.Builder().build())
+            }
+            onConfiguration?.invoke(builder)
+            _jsonMapper = builder.build()
+        }
     }
 
     override fun <T, RESULT : CxHttpResult<T>> convert(response: Response, tType: Type): RESULT {

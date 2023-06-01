@@ -12,7 +12,8 @@ import java.io.InputStream
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class OkHttp3Call(private var _okHttpClient: OkHttpClient? = null,
+
+class OkHttp3Call @JvmOverloads constructor(private var _okHttpClient: OkHttpClient? = null,
                   onConfiguration: ((OkHttpClient.Builder) -> Unit)? = null): CxHttpCall {
 
     private val okHttpClient: OkHttpClient

@@ -1,10 +1,8 @@
 apply plugin: 'maven-publish'
 
-
 afterEvaluate {
 
-    tasks.register('sourceJar', Jar) {
-        dependsOn classes
+    task sourceJar(type: Jar, dependsOn: classes) {
         description = "打包源码"
         //noinspection GroovyAccessibility
         archiveClassifier = "sources"
@@ -17,26 +15,17 @@ afterEvaluate {
             mavenKotlin(MavenPublication) {
                 // Applies the component for the release build variant.
                 from components.kotlin
-                groupId = "${project.POM_GROUP_ID}"
-                artifactId = "${project.POM_ARTIFACT_ID}"
-                version = "${project.POM_VERSION}"
+                groupId = "${project.EEG_SERVICE_POM_GROUP_ID}"
+                artifactId = "${project.EEG_SERVICE_POM_ARTIFACT_ID}"
+                version = "${project.EEG_SERVICE_POM_VERSION}"
                 artifact sourceJar // 上传源码
             }
-
-//            create<MavenPublication>("maven") {
-//                groupId = "org.gradle.sample"
-//                artifactId = "library"
-//                version = "1.1"
-//
-//                from(components["java"])
-//            }
-
         }
 
         repositories {
             // 定义一个 maven 仓库
             maven {
-                def url = "https://s01.oss.sonatype.org/"
+                def url = "${project.MAVEN_REPOSITORY_URL}"
                 if(url.startsWith("http")){
                     allowInsecureProtocol = true
                     credentials {

@@ -3,7 +3,7 @@ package com.zicheng.net.cxhttp.entity
 import java.io.File
 import java.net.URI
 
-class UploadFileWrapper: File {
+internal class UploadFileWrapper: File {
 
     private var value: String? = null //用于文件上传时对应的value值, 为空时,默认为文件名
     private val key: String
