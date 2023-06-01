@@ -43,3 +43,4 @@ bin/
 .DS_Store
 
 gradle.properties
+library/mavenSign.gpg

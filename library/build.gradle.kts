@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm")
 }
+apply(from="${rootDir}/library/upload-archives.gradle")
 
 group = "com.github.zicheng2019"
 
@@ -13,8 +14,4 @@ dependencies {
     api("com.squareup.okhttp3:logging-interceptor:4.9.3")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.1")
     compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
-}
-
-tasks.test {
-    useJUnitPlatform()
 }

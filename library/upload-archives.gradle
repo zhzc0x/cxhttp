@@ -1,41 +1,56 @@
+// add maven-publish and signing gradle plugin
 apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
-afterEvaluate {
+// add publish script
+publishing {
+    publications {
+        mavenKotlin(MavenPublication) {
+            pom {
+                name = 'cxhttp'
+                description = 'Network request framework based on kotlin coroutine and okhttp3 package'
+                url = 'https://github.com/zicheng2019/cxhttp'
 
-    task sourceJar(type: Jar, dependsOn: classes) {
-        description = "打包源码"
-        //noinspection GroovyAccessibility
-        archiveClassifier = "sources"
-        from sourceSets.main.allSource
-    }
-
-    publishing {
-        publications {
-            // Creates a Maven publication called "release".
-            mavenKotlin(MavenPublication) {
-                // Applies the component for the release build variant.
-                from components.kotlin
-                groupId = "${project.EEG_SERVICE_POM_GROUP_ID}"
-                artifactId = "${project.EEG_SERVICE_POM_ARTIFACT_ID}"
-                version = "${project.EEG_SERVICE_POM_VERSION}"
-                artifact sourceJar // 上传源码
-            }
-        }
-
-        repositories {
-            // 定义一个 maven 仓库
-            maven {
-                def url = "${project.MAVEN_REPOSITORY_URL}"
-                if(url.startsWith("http")){
-                    allowInsecureProtocol = true
-                    credentials {
-                        username = "admin"
-                        password = "admin123"
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
-                setUrl(url)
+                developers {
+                    developer {
+                        id = 'zicheng2019'
+                        name = 'zhangzicheng'
+                        email = 'zhangzicheng2016@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'https://github.com/zicheng2019/cxhttp.git'
+                    developerConnection = 'https://github.com/zicheng2019/cxhttp.git'
+                    url = 'https://github.com/zicheng2019/cxhttp'
+                }
+            }
+            groupId = pomGroupId
+            artifactId = pomArtifactId
+            version = pomVersion
+
+            from components.kotlin
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            url = pomVersion.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username ossrhUsername // ossrhUsername is your sonatype username
+                password ossrhPassword // ossrhUsername is your sonatype password
             }
         }
-
     }
+}
+
+// signing, this need key, secret, we put it into gradle.properties
+signing {
+    sign publishing.publications.mavenKotlin
 }
