@@ -2,10 +2,23 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+
 // add publish script
 publishing {
     publications {
         mavenKotlin(MavenPublication) {
+
+            groupId = pomGroupId
+            artifactId = pomArtifactId
+            version = pomVersion
+
+            from components.java
+
             pom {
                 name = 'cxhttp'
                 description = 'Network request framework based on kotlin coroutine and okhttp3 package'
@@ -30,11 +43,6 @@ publishing {
                     url = 'https://github.com/zicheng2019/cxhttp'
                 }
             }
-            groupId = pomGroupId
-            artifactId = pomArtifactId
-            version = pomVersion
-
-            from components.kotlin
         }
     }
     repositories {
