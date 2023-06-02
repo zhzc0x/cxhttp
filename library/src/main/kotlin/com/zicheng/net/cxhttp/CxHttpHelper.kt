@@ -10,7 +10,6 @@ import com.zicheng.net.cxhttp.hook.HookRequest
 import com.zicheng.net.cxhttp.hook.HookResult
 import com.zicheng.net.cxhttp.hook.NothingHook
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.logging.HttpLoggingInterceptor
@@ -43,7 +42,7 @@ object CxHttpHelper {
     internal var hookResult: HookResult = NothingHook()
 
     @JvmOverloads
-    fun init(scope: CoroutineScope = MainScope(), debugLog: Boolean = false, call: CxHttpCall = OkHttp3Call{
+    fun init(scope: CoroutineScope, debugLog: Boolean, call: CxHttpCall = OkHttp3Call{
         it.callTimeout(15, TimeUnit.SECONDS)
         if (debugLog) {
             it.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))

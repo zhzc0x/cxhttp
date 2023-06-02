@@ -52,7 +52,7 @@ const val TEST_URL_USER_PROJECTS = "test://www.******.com/user/projects"
 
 fun main(args: Array<String>) {
     val jacksonConverter = JacksonConverter(MyHttpResult::class.java)
-    CxHttpHelper.init(debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
+    CxHttpHelper.init(scope = MainScope(), debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
     CxHttpHelper.setHookRequest(object: HookRequest {
         override fun invoke(request: Request): Request {
             //此处可添加一些公共参数和头信息
