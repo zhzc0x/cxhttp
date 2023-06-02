@@ -61,7 +61,7 @@ dependencies {
 代码调用
 
 ```kotlin
-	val jacksonConverter = JacksonConverter(MyHttpResult::class.java)
+val jacksonConverter = JacksonConverter(MyHttpResult::class.java)
     CxHttpHelper.init(scope = MainScope(), debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
     CxHttpHelper.setHookRequest(object: HookRequest {
         override fun invoke(request: Request): Request {
