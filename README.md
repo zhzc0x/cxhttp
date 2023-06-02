@@ -1,7 +1,116 @@
 # cxhttp
+
 Coroutine Extensions Http（协程扩展Http）
 
+- 支持get、post（可指定RequestBodyConverter）、postForm、postFile（可指定content-type）请求
 
+- 支持每个请求单独指定ResponseConverter，请求结果CxHttpResult<T>直接返回所需对象，代码简洁，扩展性强
+
+  ```kotlin
+  /**
+   * 基础数据抽象类，T为任意类型
+   * 调用者根据自己的需求定制基础数据类，自定义属性名称和code属性类型，构造器需要包含构造参数顺序及个数与CxHttpResult一致的构造器，其它无限制，例：
+   * data class MyHttpResult<T>(val code: Int,
+   *                            val errorMsg: String,
+   *                            val data: T?,): CxHttpResult<T>(code.toString(), errorMsg, data)
+   * */
+  abstract class CxHttpResult<T>(internal val cxCode: String,
+                                 internal val cxMsg: String,
+                                 internal val cxData: T?)
+  ```
+
+- 支持自定义RequestBodyConverter和ResponseConverter，默认JacksonConverter实现
+
+  ```kotlin
+  interface RequestBodyConverter {
+      
+      val contentType: String
+      
+      fun <T> convert(value: T): ByteArray
+      
+  }
+  interface ResponseConverter {
+  
+      val resultClass: Class<*>
+  
+      fun <T, RESULT: CxHttpResult<T>> convert(response: Response, tType: Type): RESULT
+  
+      fun <T, RESULT: CxHttpResult<List<T>>> convert(response: Response, listType: ParameterizedType): RESULT
+      
+  }
+  ```
+
+- 支持设置HookRequest（添加公共头信息、参数等）和HookResult（预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等）
+
+- 支持自定义CxHttpCall，默认OkHttp3Call
+
+# 示例
+
+添加gradle依赖
+
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("io.github.zicheng2019:cxhttp:1.0.0")
+}
+```
+
+代码调用
+
+```kotlin
+	val jacksonConverter = JacksonConverter(MyHttpResult::class.java)
+    CxHttpHelper.init(scope = MainScope(), debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
+    CxHttpHelper.setHookRequest(object: HookRequest {
+        override fun invoke(request: Request): Request {
+            request.header("token", "1a2b3c4d5e6f")
+            request.param("id", "123456")
+            return request
+        }
+    })
+    CxHttpHelper.setHookResult(object: HookResult{
+        override suspend fun <RESULT : CxHttpResult<*>> invoke(result: RESULT): RESULT {
+            result.request
+            result.setReRequest(false)//设置是否重新请求，默认false
+            return result
+        }
+    })
+    runBlocking {
+        val job = CxHttp.get("https://www.baidu.com")
+            //此处可指定协程，不指定默认使用CxHttpHelper.scope
+            .launch(String::class.java, this){ resultGet1 ->
+            println("resultGet1: $resultGet1")
+        }
+        val resultGet2: MyHttpResult<String> = CxHttp.get("https://www.baidu.com").await(String::class.java)
+        println("resultGet2: $resultGet2")
+
+        val resultDeferred = CxHttp.get("https://www.baidu.com").async<String, MyHttpResult<String>>(String::class.java)
+        val resultGet3 = resultDeferred.await()
+        println("resultGet3: $resultGet3")
+
+        //reqBodyConverter可单独自定义，实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()指定的全局converter
+        CxHttp.post(TEST_URL_USER_UPDATE, paramMap= mapOf(
+            "name" to "zhangzicheng",
+            "age" to 32,
+            "gender" to "男",
+            "occupation" to "农民"), reqBodyConverter = jacksonConverter)
+            .launch<UserInfo, MyHttpResult<UserInfo>>(UserInfo::class.java){ resultPost1 ->
+                println("resultPost1: $resultPost1")
+            }
+        CxHttp.post(TEST_URL_USER_UPDATE, paramEntity = UserInfo("zhangzicheng", 32, "男", "农民"))
+            .launch<UserInfo, MyHttpResult<UserInfo>>(UserInfo::class.java){ resultPost2 ->
+                println("resultPost2: $resultPost2")
+            }
+        CxHttp.post(TEST_URL_USER_PROJECTS)
+            .param("page", 1)
+            .param("pageSize", 2)
+            .launchToList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>(ProjectInfo::class.java){ resultPost3 ->
+                println("resultPost3: $resultPost3")
+            }
+    }
+```
 
 # License
 Copyright 2023 zicheng2019
