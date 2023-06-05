@@ -89,6 +89,7 @@ class CxHttp private constructor(private val request: Request) {
          * @param paramMap Map<String, Any>?：请求参数
          * @param fileKey String：文件key
          * @param filePathList List<String>：文件路径List<path>
+         * @param onProgress ((Long, Long) -> Unit)?：totalLength, currentLength
          *
          * */
         @JvmStatic
@@ -107,6 +108,7 @@ class CxHttp private constructor(private val request: Request) {
          * @param paramMap Map<String, Any>?：请求参数
          * @param fileKey String：文件key
          * @param filePathMap Map<String, String>：文件路径Map<name, path>
+         * @param onProgress ((Long, Long) -> Unit)?：totalLength, currentLength
          *
          * */
         @JvmStatic
