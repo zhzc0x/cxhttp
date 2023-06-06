@@ -4,6 +4,20 @@ Coroutine Extensions Http（协程扩展Http）
 
 - 支持get、post（可指定RequestBodyConverter）、postForm、postFile（可指定content-type）请求
 
+- 支持自定义RequestBodyConverter和ResponseConverter，默认JacksonConverter实现
+
+  ```kotlin
+  interface RequestBodyConverter {
+      val contentType: String
+      fun <T> convert(value: T): ByteArray
+  }
+  interface ResponseConverter {
+      val resultClass: Class<*>
+      fun <T, RESULT: CxHttpResult<T>> convert(response: Response, tType: Type): RESULT
+      fun <T, RESULT: CxHttpResult<List<T>>> convert(response: Response, listType: ParameterizedType): RESULT
+  }
+  ```
+  
 - 支持每个请求单独指定ResponseConverter，请求结果CxHttpResult<T>直接返回所需对象，代码简洁，扩展性强
 
   ```kotlin
@@ -17,27 +31,6 @@ Coroutine Extensions Http（协程扩展Http）
   abstract class CxHttpResult<T>(internal val cxCode: String,
                                  internal val cxMsg: String,
                                  internal val cxData: T?)
-  ```
-
-- 支持自定义RequestBodyConverter和ResponseConverter，默认JacksonConverter实现
-
-  ```kotlin
-  interface RequestBodyConverter {
-      
-      val contentType: String
-      
-      fun <T> convert(value: T): ByteArray
-      
-  }
-  interface ResponseConverter {
-  
-      val resultClass: Class<*>
-  
-      fun <T, RESULT: CxHttpResult<T>> convert(response: Response, tType: Type): RESULT
-  
-      fun <T, RESULT: CxHttpResult<List<T>>> convert(response: Response, listType: ParameterizedType): RESULT
-      
-  }
   ```
 
 - 支持设置HookRequest（添加公共头信息、参数等）和HookResult（预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等）
@@ -61,22 +54,19 @@ dependencies {
 代码调用
 
 ```kotlin
-val jacksonConverter = JacksonConverter(MyHttpResult::class.java)
+    val jacksonConverter = JacksonConverter(MyHttpResult::class.java)
     CxHttpHelper.init(scope = MainScope(), debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
-    CxHttpHelper.setHookRequest(object: HookRequest {
-        override fun invoke(request: Request): Request {
-            request.header("token", "1a2b3c4d5e6f")
-            request.param("id", "123456")
-            return request
-        }
-    })
-    CxHttpHelper.setHookResult(object: HookResult{
-        override suspend fun <RESULT : CxHttpResult<*>> invoke(result: RESULT): RESULT {
-            result.request
-            result.setReRequest(false)//设置是否重新请求，默认false
-            return result
-        }
-    })
+    
+    CxHttpHelper.hookRequest{ request ->
+        request.param("id", "123456")
+        request.header("token", "1a2b3c4d5e6f")
+        request
+    }
+    CxHttpHelper.hookResult{ result ->
+        result.request
+        result.setReRequest(false)//设置是否重新请求，默认false
+        result
+    }
     runBlocking {
         val job = CxHttp.get("https://www.baidu.com")
             //此处可指定协程，不指定默认使用CxHttpHelper.scope

@@ -5,10 +5,6 @@ import com.zicheng.demo.cxhttp.MyHttpCall
 import com.zicheng.net.cxhttp.CxHttp
 import com.zicheng.net.cxhttp.CxHttpHelper
 import com.zicheng.net.cxhttp.converter.JacksonConverter
-import com.zicheng.net.cxhttp.entity.CxHttpResult
-import com.zicheng.net.cxhttp.hook.HookRequest
-import com.zicheng.net.cxhttp.hook.HookResult
-import com.zicheng.net.cxhttp.request.Request
 import kotlinx.coroutines.*
 
 
@@ -53,22 +49,18 @@ const val TEST_URL_USER_PROJECTS = "test://www.******.com/user/projects"
 fun main(args: Array<String>) {
     val jacksonConverter = JacksonConverter(MyHttpResult::class.java)
     CxHttpHelper.init(scope = MainScope(), debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
-    CxHttpHelper.setHookRequest(object: HookRequest {
-        override fun invoke(request: Request): Request {
-            //此处可添加一些公共参数和头信息
-            request.param("id", "123456")
-            request.header("token", "1a2b3c4d5e6f")
-            return request
-        }
-    })
-    CxHttpHelper.setHookResult(object: HookResult{
-        override suspend fun <RESULT : CxHttpResult<*>> invoke(result: RESULT): RESULT {
-            //此处可以预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等
-            result.request
-            result.setReRequest(false)//设置是否重新请求，默认false
-            return result
-        }
-    })
+    CxHttpHelper.hookRequest { request ->
+        //此处可添加一些公共参数和头信息
+        request.param("id", "123456")
+        request.header("token", "1a2b3c4d5e6f")
+        request
+    }
+    CxHttpHelper.hookResult { result ->
+        //此处可以预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等
+        result.request
+        result.setReRequest(false)//设置是否重新请求，默认false
+        result
+    }
     runBlocking {
         val job = CxHttp.get("https://www.baidu.com")
             //此处可指定协程，不指定默认使用CxHttpHelper.scope

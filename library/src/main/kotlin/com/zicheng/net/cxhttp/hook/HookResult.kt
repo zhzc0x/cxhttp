@@ -3,13 +3,13 @@ package com.zicheng.net.cxhttp.hook
 import com.zicheng.net.cxhttp.entity.CxHttpResult
 import com.zicheng.net.cxhttp.request.Request
 
+typealias HookResultFunction = suspend HookResult.(CxHttpResult<*>) -> CxHttpResult<*>
+
 /**
  * 预处理结果：可以根据状态码增加一些操作，比如token失效自动刷新并重试功能
  *
  * */
-interface HookResult{
-
-    suspend operator fun <RESULT: CxHttpResult<*>> invoke(result: RESULT): RESULT
+object HookResult: HookResultFunction {
 
     val CxHttpResult<*>.code: String
         get() = this.cxCode
@@ -25,6 +25,10 @@ interface HookResult{
 
     fun CxHttpResult<*>.setReRequest(value: Boolean){
         reRequest = value
+    }
+
+    override suspend fun invoke(hook: HookResult, result: CxHttpResult<*>): CxHttpResult<*> {
+        return result
     }
 
 }

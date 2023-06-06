@@ -4,13 +4,13 @@ import com.zicheng.net.cxhttp.call.CxHttpCall
 import com.zicheng.net.cxhttp.call.OkHttp3Call
 import com.zicheng.net.cxhttp.converter.CxHttpConverter
 import com.zicheng.net.cxhttp.converter.JacksonConverter
+import com.zicheng.net.cxhttp.entity.CxHttpResult
 import com.zicheng.net.cxhttp.entity.HttpResult
 import com.zicheng.net.cxhttp.exception.CxHttpException
-import com.zicheng.net.cxhttp.hook.HookRequest
-import com.zicheng.net.cxhttp.hook.HookResult
-import com.zicheng.net.cxhttp.hook.NothingHook
+import com.zicheng.net.cxhttp.hook.*
+import com.zicheng.net.cxhttp.request.Request
 import kotlinx.coroutines.CoroutineScope
-import okhttp3.*
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.InterruptedIOException
@@ -38,8 +38,8 @@ object CxHttpHelper {
     internal lateinit var call: CxHttpCall
     internal lateinit var converter: CxHttpConverter
     internal var debugLog = false
-    internal var hookRequest: HookRequest = NothingHook()
-    internal var hookResult: HookResult = NothingHook()
+    internal var hookRequest: HookRequestFunction = HookRequest
+    internal var hookResult: HookResultFunction = HookResult
 
     @JvmOverloads
     fun init(scope: CoroutineScope, debugLog: Boolean, call: CxHttpCall = OkHttp3Call{
@@ -54,12 +54,21 @@ object CxHttpHelper {
         this.converter = converter
     }
 
-    fun setHookRequest(hookRequest: HookRequest){
-        this.hookRequest = hookRequest
+    fun hookRequest(hook: HookRequestFunction){
+        hookRequest = hook
     }
 
-    fun setHookResult(hookResult: HookResult){
-        this.hookResult = hookResult
+    fun hookResult(hook: HookResultFunction){
+        hookResult = hook
+    }
+
+    internal suspend inline fun applyHookRequest(request: Request): Request {
+        return HookRequest.hookRequest(request)
+    }
+
+    internal suspend inline fun <RESULT: CxHttpResult<*>> applyHookResult(result: CxHttpResult<*>): RESULT{
+        @Suppress("UNCHECKED_CAST")
+        return HookResult.hookResult(result) as RESULT
     }
 
     internal fun getMediaType(fName: String): MediaType {

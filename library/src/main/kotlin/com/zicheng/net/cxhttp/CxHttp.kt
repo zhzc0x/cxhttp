@@ -195,7 +195,7 @@ class CxHttp private constructor(private val request: Request) {
     private suspend fun <T, RESULT: CxHttpResult<T>> awaitImpl(clazz: Class<T>): RESULT{
         var result = try {
             // Hook and Execute request
-            val response = CxHttpHelper.call.await(CxHttpHelper.hookRequest(request))
+            val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
             if(response.isSuccessful && response.body != null){
                 respConverter.convert<T, RESULT>(response, clazz)
             } else {
@@ -205,7 +205,7 @@ class CxHttp private constructor(private val request: Request) {
             respConverter.convert(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ie))
         }
         result.request = request
-        result = CxHttpHelper.hookResult(result)
+        result = CxHttpHelper.applyHookResult(result)
         if(result.reRequest){
             return awaitImpl(clazz)
         }
@@ -215,7 +215,7 @@ class CxHttp private constructor(private val request: Request) {
     private suspend fun <T, RESULT: CxHttpResult<List<T>>> awaitToListImpl(clazz: Class<T>): RESULT{
         var result = try {
             // Hook and Execute request
-            val response = CxHttpHelper.call.await(CxHttpHelper.hookRequest(request))
+            val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
             if(response.isSuccessful && response.body != null){
                 respConverter.convert<T, RESULT>(response, ParameterizedTypeImpl(List::class.java, clazz as Type))
             } else {
@@ -225,7 +225,7 @@ class CxHttp private constructor(private val request: Request) {
             respConverter.convert(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ie))
         }
         result.request = request
-        result = CxHttpHelper.hookResult(result)
+        result = CxHttpHelper.applyHookResult(result)
         if(result.reRequest){
             return awaitToListImpl(clazz)
         }
