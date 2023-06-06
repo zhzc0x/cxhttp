@@ -4,7 +4,7 @@ Coroutine Extensions Http（协程扩展Http）
 
 - 支持get、post（可指定RequestBodyConverter）、postForm、postFile（可指定content-type）请求
 
-- 支持自定义RequestBodyConverter和ResponseConverter，默认JacksonConverter实现
+- 支持自定义RequestBodyConverter和ResponseConverter，默认实现JacksonConverter
 
   ```kotlin
   interface RequestBodyConverter {
@@ -22,20 +22,18 @@ Coroutine Extensions Http（协程扩展Http）
 
   ```kotlin
   /**
-   * 基础数据抽象类，T为任意类型
-   * 调用者根据自己的需求定制基础数据类，自定义属性名称和code属性类型，构造器需要包含构造参数顺序及个数与CxHttpResult一致的构造器，其它无限制，例：
-   * data class MyHttpResult<T>(val code: Int,
+   * CxHttp所有请求返回的结果基类，T为任意类型，默认实现 @see HttpResult
+   * 调用者可实现自己的基类，属性名称无限制，但构造器（参数顺序及个数）必须包含与CxHttpResult一致的构造器
+   * 例：data class MyHttpResult<T>(val code: Int/String,
    *                            val errorMsg: String,
    *                            val data: T?,): CxHttpResult<T>(code.toString(), errorMsg, data)
    * */
-  abstract class CxHttpResult<T>(internal val cxCode: String,
-                                 internal val cxMsg: String,
-                                 internal val cxData: T?)
+  abstract class CxHttpResult<T>(internal val cxCode: String, internal val cxMsg: String, internal val cxData: T?)
   ```
 
-- 支持设置HookRequest（添加公共头信息、参数等）和HookResult（预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等）
+- 支持hookRequest（添加公共头信息、参数等）和hookResult（预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等）功能
 
-- 支持自定义CxHttpCall，默认OkHttp3Call
+- 支持自定义CxHttpCall，默认实现OkHttp3Call
 
 # 示例
 
