@@ -9,7 +9,7 @@ typealias HookResultFunction = suspend HookResult.(CxHttpResult<*>) -> CxHttpRes
  * 预处理结果：可以根据状态码增加一些操作，比如token失效自动刷新并重试功能
  *
  * */
-object HookResult: HookResultFunction {
+class HookResult internal constructor(): HookResultFunction {
 
     val CxHttpResult<*>.code: String
         get() = this.cxCode

@@ -38,8 +38,10 @@ object CxHttpHelper {
     internal lateinit var call: CxHttpCall
     internal lateinit var converter: CxHttpConverter
     internal var debugLog = false
-    internal var hookRequest: HookRequestFunction = HookRequest
-    internal var hookResult: HookResultFunction = HookResult
+    private val hookRequestInstance = HookRequest()
+    private val hookResultInstance = HookResult()
+    internal var hookRequest: HookRequestFunction = hookRequestInstance
+    internal var hookResult: HookResultFunction = hookResultInstance
 
     @JvmOverloads
     fun init(scope: CoroutineScope, debugLog: Boolean, call: CxHttpCall = OkHttp3Call{
@@ -63,12 +65,12 @@ object CxHttpHelper {
     }
 
     internal suspend inline fun applyHookRequest(request: Request): Request {
-        return HookRequest.hookRequest(request)
+        return hookRequestInstance.hookRequest(request)
     }
 
     internal suspend inline fun <RESULT: CxHttpResult<*>> applyHookResult(result: CxHttpResult<*>): RESULT{
         @Suppress("UNCHECKED_CAST")
-        return HookResult.hookResult(result) as RESULT
+        return hookResultInstance.hookResult(result) as RESULT
     }
 
     internal fun getMediaType(fName: String): MediaType {
