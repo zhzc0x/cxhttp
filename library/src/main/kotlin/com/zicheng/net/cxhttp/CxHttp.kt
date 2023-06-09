@@ -20,8 +20,6 @@ import java.lang.reflect.Type
  * */
 class CxHttp private constructor(private val request: Request) {
 
-    private var respConverter: ResponseConverter = CxHttpHelper.converter
-
     companion object{
 
         /**
@@ -138,6 +136,10 @@ class CxHttp private constructor(private val request: Request) {
         }
     }
 
+    var scope = CxHttpHelper.scope
+        internal set
+    private var respConverter: ResponseConverter = CxHttpHelper.converter
+
     fun header(name: String, value: String) = apply {
         request.header(name, value)
     }
@@ -150,6 +152,10 @@ class CxHttp private constructor(private val request: Request) {
         request.tag(tag)
     }
 
+    fun scope(scope: CoroutineScope) = apply {
+        this.scope = scope
+    }
+
     /**
      * 设置ResponseConverter，自定义转换Response to CxHttpResult，默认使用CxHttpHelper.converter
      *
@@ -158,46 +164,38 @@ class CxHttp private constructor(private val request: Request) {
         this.respConverter = respConverter
     }
 
-    @JvmOverloads
-    fun <T, RESULT: CxHttpResult<T>> launch(clazz: Class<T>, coroutineScope: CoroutineScope = CxHttpHelper.scope,
-                                            awaitResult: suspend CoroutineScope.(RESULT) -> Unit)
-    = coroutineScope.launch {
-        awaitResult(await(clazz))
+    inline fun <reified T, RESULT: CxHttpResult<T>> launch(
+        crossinline awaitResult: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
+        awaitResult(await())
     }
 
-    @JvmOverloads
-    fun <T, RESULT: CxHttpResult<List<T>>> launchToList(clazz: Class<T>, coroutineScope: CoroutineScope = CxHttpHelper.scope,
-                                                        awaitResult: suspend CoroutineScope.(RESULT) -> Unit)
-    = coroutineScope.launch {
-        awaitResult(awaitToList(clazz))
+    inline fun <reified T, RESULT: CxHttpResult<List<T>>> launchToList(
+        crossinline awaitResult: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
+        awaitResult(awaitToList())
     }
 
-    suspend fun <T, RESULT: CxHttpResult<T>> await(clazz: Class<T>): RESULT = withContext(Dispatchers.IO){
-        awaitImpl(clazz)
+    suspend inline fun <reified T, RESULT: CxHttpResult<T>> await(): RESULT = withContext(Dispatchers.IO){
+        await(T::class.java)
     }
 
-    suspend fun <T, RESULT: CxHttpResult<List<T>>> awaitToList(clazz: Class<T>): RESULT = withContext(Dispatchers.IO){
-        awaitToListImpl(clazz)
+    suspend inline fun <reified T, RESULT: CxHttpResult<List<T>>> awaitToList(): RESULT = withContext(Dispatchers.IO){
+        awaitToList(T::class.java)
     }
 
-    @JvmOverloads
-    fun <T, RESULT: CxHttpResult<T>> async(clazz: Class<T>, coroutineScope: CoroutineScope = CxHttpHelper.scope): Deferred<RESULT>
-    = coroutineScope.async(Dispatchers.IO) {
-        awaitImpl(clazz)
+    inline fun <reified T, RESULT: CxHttpResult<T>> async(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
+        await(T::class.java)
     }
 
-    @JvmOverloads
-    fun <T, RESULT: CxHttpResult<List<T>>> asyncToList(clazz: Class<T>, coroutineScope: CoroutineScope = CxHttpHelper.scope): Deferred<RESULT>
-    = coroutineScope.async(Dispatchers.IO) {
-        awaitToListImpl(clazz)
+    inline fun <reified T, RESULT: CxHttpResult<List<T>>> asyncToList(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
+        awaitToList(T::class.java)
     }
 
-    private suspend fun <T, RESULT: CxHttpResult<T>> awaitImpl(clazz: Class<T>): RESULT{
+    suspend fun <T, RESULT: CxHttpResult<T>> await(tClass: Class<T>): RESULT{
         var result = try {
             // Hook and Execute request
             val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
             if(response.isSuccessful && response.body != null){
-                respConverter.convert<T, RESULT>(response, clazz)
+                respConverter.convert<T, RESULT>(response, tClass)
             } else {
                 respConverter.convert(response.code.toString(), response.message)
             }
@@ -207,17 +205,17 @@ class CxHttp private constructor(private val request: Request) {
         result.request = request
         result = CxHttpHelper.applyHookResult(result)
         if(result.reRequest){
-            return awaitImpl(clazz)
+            return await(tClass)
         }
         return result
     }
 
-    private suspend fun <T, RESULT: CxHttpResult<List<T>>> awaitToListImpl(clazz: Class<T>): RESULT{
+    suspend fun <T, RESULT: CxHttpResult<List<T>>> awaitToList(tClass: Class<T>): RESULT{
         var result = try {
             // Hook and Execute request
             val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
             if(response.isSuccessful && response.body != null){
-                respConverter.convert<T, RESULT>(response, ParameterizedTypeImpl(List::class.java, clazz as Type))
+                respConverter.convert<T, RESULT>(response, ParameterizedTypeImpl(List::class.java, tClass as Type))
             } else {
                 respConverter.convert(response.code.toString(), response.message)
             }
@@ -227,7 +225,7 @@ class CxHttp private constructor(private val request: Request) {
         result.request = request
         result = CxHttpHelper.applyHookResult(result)
         if(result.reRequest){
-            return awaitToListImpl(clazz)
+            return awaitToList(tClass)
         }
         return result
     }

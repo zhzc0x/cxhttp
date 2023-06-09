@@ -4,26 +4,26 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
 
-class ParameterizedTypeImpl(private val owner: Type? = null, private val raw: Class<*>,
-                            vararg args: Type): ParameterizedType {
+class ParameterizedTypeImpl(private val ownerType: Type? = null, private val rawType: Class<*>,
+                            vararg typeArguments: Type): ParameterizedType {
 
-    constructor(raw: Class<*>, vararg args: Type): this(null, raw, *args)
+    constructor(rawType: Class<*>, vararg typeArguments: Type): this(null, rawType, *typeArguments)
 
-    private val args: Array<Type>
+    private val typeArguments: Array<Type>
 
     init {
-        this.args = arrayOf(*args)
+        this.typeArguments = arrayOf(*typeArguments)
     }
 
     override fun getActualTypeArguments(): Array<Type> {
-        return args
+        return typeArguments
     }
 
     override fun getRawType(): Type {
-        return raw
+        return rawType
     }
 
     override fun getOwnerType(): Type? {
-        return owner
+        return ownerType
     }
 }

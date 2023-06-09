@@ -64,13 +64,13 @@ fun main(args: Array<String>) {
     runBlocking {
         val job = CxHttp.get("https://www.baidu.com")
             //此处可指定协程，不指定默认使用CxHttpHelper.scope
-            .launch(String::class.java, this){ resultGet1 ->
+            .launch<String, MyHttpResult<String>>{ resultGet1 ->
             println("resultGet1: $resultGet1")
         }
-        val resultGet2: MyHttpResult<String> = CxHttp.get("https://www.baidu.com").await(String::class.java)
+        val resultGet2: MyHttpResult<String> = CxHttp.get("https://www.baidu.com").await()
         println("resultGet2: $resultGet2")
 
-        val resultDeferred = CxHttp.get("https://www.baidu.com").async<String, MyHttpResult<String>>(String::class.java)
+        val resultDeferred = CxHttp.get("https://www.baidu.com").async<String, MyHttpResult<String>>()
         val resultGet3 = resultDeferred.await()
         println("resultGet3: $resultGet3")
 
@@ -80,18 +80,18 @@ fun main(args: Array<String>) {
             "age" to 32,
             "gender" to "男",
             "occupation" to "农民"), reqBodyConverter = jacksonConverter)
-            .launch<UserInfo, MyHttpResult<UserInfo>>(UserInfo::class.java){ resultPost1 ->
+            .launch<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
                 println("resultPost1: $resultPost1")
             }
         CxHttp.post(TEST_URL_USER_UPDATE, paramEntity = UserInfo("zhangzicheng", 32, "男", "农民"))
-            .launch<UserInfo, MyHttpResult<UserInfo>>(UserInfo::class.java){ resultPost2 ->
+            .launch<UserInfo, MyHttpResult<UserInfo>>{ resultPost2 ->
                 println("resultPost2: $resultPost2")
             }
 
         CxHttp.post(TEST_URL_USER_PROJECTS)
             .param("page", 1)
             .param("pageSize", 2)
-            .launchToList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>(ProjectInfo::class.java){ resultPost3 ->
+            .launchToList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost3 ->
                 println("resultPost3: $resultPost3")
             }
 
