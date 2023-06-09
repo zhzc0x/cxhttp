@@ -45,9 +45,9 @@ object CxHttpHelper {
 
     @JvmOverloads
     fun init(scope: CoroutineScope, debugLog: Boolean, call: CxHttpCall = OkHttp3Call{
-        it.callTimeout(15, TimeUnit.SECONDS)
+        callTimeout(15, TimeUnit.SECONDS)
         if (debugLog) {
-            it.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
         }
     }, converter: CxHttpConverter = JacksonConverter(HttpResult::class.java)){
         this.scope = scope

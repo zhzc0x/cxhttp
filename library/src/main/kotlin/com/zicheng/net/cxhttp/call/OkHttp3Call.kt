@@ -14,7 +14,7 @@ import kotlin.coroutines.resumeWithException
 
 
 class OkHttp3Call @JvmOverloads constructor(private var _okHttpClient: OkHttpClient? = null,
-                  onConfiguration: ((OkHttpClient.Builder) -> Unit)? = null): CxHttpCall {
+                                            onConfiguration: OkHttpClient.Builder.() -> Unit = {}): CxHttpCall {
 
     private val okHttpClient: OkHttpClient
         get() = _okHttpClient!!
@@ -22,7 +22,7 @@ class OkHttp3Call @JvmOverloads constructor(private var _okHttpClient: OkHttpCli
     init {
         if(_okHttpClient == null){
             val clientBuilder = OkHttpClient.Builder()
-            onConfiguration?.invoke(clientBuilder)
+            clientBuilder.onConfiguration()
             _okHttpClient = clientBuilder.build()
         }
     }

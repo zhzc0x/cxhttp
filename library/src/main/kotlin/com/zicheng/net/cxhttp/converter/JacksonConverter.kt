@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class JacksonConverter @JvmOverloads constructor(override val resultClass: Class<*>, private var _jsonMapper: JsonMapper? = null,
-                       onConfiguration: ((JsonMapper.Builder) -> Unit)? = null): CxHttpConverter {
+                                                 onConfiguration: JsonMapper.Builder.() -> Unit = {}): CxHttpConverter {
 
     override val contentType: String = CxHttpHelper.CONTENT_TYPE_JSON
     private val jsonMapper: JsonMapper
@@ -32,9 +32,9 @@ class JacksonConverter @JvmOverloads constructor(override val resultClass: Class
                 disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 defaultDateFormat(SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()))
                 serializationInclusion(JsonInclude.Include.NON_NULL)
+                onConfiguration()
                 addModule(KotlinModule.Builder().build())
             }
-            onConfiguration?.invoke(builder)
             _jsonMapper = builder.build()
         }
     }

@@ -15,8 +15,8 @@ import java.util.concurrent.TimeUnit
 class MyHttpCall: CxHttpCall {
 
     private val okHttp3Call = OkHttp3Call{
-        it.callTimeout(15, TimeUnit.SECONDS)
-        it.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+        callTimeout(15, TimeUnit.SECONDS)
+        addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
     }
 
     @Throws(CxHttpException::class)
