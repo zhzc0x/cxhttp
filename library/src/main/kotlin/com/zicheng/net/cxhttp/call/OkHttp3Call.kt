@@ -3,6 +3,7 @@ package com.zicheng.net.cxhttp.call
 import com.zicheng.net.cxhttp.entity.Response
 import com.zicheng.net.cxhttp.exception.CxHttpException
 import com.zicheng.net.cxhttp.request.Request
+import com.zicheng.net.cxhttp.request.buildOkHttp3Request
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.Call
 import okhttp3.Callback
@@ -29,7 +30,7 @@ class OkHttp3Call @JvmOverloads constructor(private var _okHttpClient: OkHttpCli
 
     @Throws(CxHttpException::class)
     override suspend fun await(request: Request): Response {
-        val realCall = okHttpClient.newCall(request.toOkHttp3Request())
+        val realCall = okHttpClient.newCall(request.buildOkHttp3Request())
         return suspendCancellableCoroutine { continuation ->
             realCall.enqueue(object : Callback {
                 override fun onResponse(call: Call, response: okhttp3.Response) {

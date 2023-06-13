@@ -6,7 +6,7 @@ import okio.*
 import java.io.IOException
 
 
-internal class MultipartRequestBody(private val requestBody: RequestBody, private val onProgress: (Long, Long) -> Unit): RequestBody() {
+internal class ProgressRequestBody(private val requestBody: RequestBody, private val onProgress: (Long, Long) -> Unit): RequestBody() {
 
     @Throws(IOException::class)
     override fun contentLength(): Long {

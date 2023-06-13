@@ -74,24 +74,27 @@ fun main(args: Array<String>) {
         val resultGet3 = resultDeferred.await()
         println("resultGet3: $resultGet3")
 
-        //reqBodyConverter可单独自定义，实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()指定的全局converter
-        CxHttp.post(TEST_URL_USER_UPDATE, paramMap= mapOf(
-            "name" to "zhangzicheng",
-            "age" to 32,
-            "gender" to "男",
-            "occupation" to "农民"), reqBodyConverter = jacksonConverter)
-            .launch<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
-                println("resultPost1: $resultPost1")
-            }
-        CxHttp.post(TEST_URL_USER_UPDATE, paramEntity = UserInfo("zhangzicheng", 32, "男", "农民"))
-            .launch<UserInfo, MyHttpResult<UserInfo>>{ resultPost2 ->
-                println("resultPost2: $resultPost2")
-            }
+        CxHttp.post(TEST_URL_USER_UPDATE){
+            params(mapOf(
+                "name" to "zhangzicheng",
+                "age" to 32,
+                "gender" to "男",
+                "occupation" to "农民"))
+            //requestBodyConverter可单独自定义，实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()指定的全局converter
+            setBodyConverter(jacksonConverter)
+        }.launch<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
+            println("resultPost1: $resultPost1")
+        }
+        CxHttp.post(TEST_URL_USER_UPDATE){
+            setBody(UserInfo("zhangzicheng", 32, "男", "农民"), UserInfo::class.java)
+        }.launch<UserInfo, MyHttpResult<UserInfo>>{ resultPost2 ->
+            println("resultPost2: $resultPost2")
+        }
 
-        CxHttp.post(TEST_URL_USER_PROJECTS)
-            .param("page", 1)
-            .param("pageSize", 2)
-            .launchToList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost3 ->
+        CxHttp.post(TEST_URL_USER_PROJECTS){
+            param("page", 1)
+            param("pageSize", 2)
+        }.launchToList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost3 ->
                 println("resultPost3: $resultPost3")
             }
 

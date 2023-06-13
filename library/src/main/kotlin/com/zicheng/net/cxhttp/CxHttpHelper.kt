@@ -25,12 +25,17 @@ object CxHttpHelper {
 
     const val HEADER_KEY_ACCEPT = "Accept"
     const val HEADER_KEY_CONTENT_TYPE = "Content-Type"
+    const val CONTENT_TYPE_TEXT = "text/*"
     const val CONTENT_TYPE_JSON = "application/json; charset=utf-8"
     const val CONTENT_TYPE_OCTET_STREAM = "application/octet-stream"
     const val CONTENT_TYPE_ZIP = "application/zip"
     const val CONTENT_TYPE_IMAGE_JPEG = "image/jpeg"
     const val CONTENT_TYPE_IMAGE_PNG = "image/png"
     const val CONTENT_TYPE_IMAGE_GIF = "image/gif"
+
+    const val CONTENT_TYPE_FORM = "application/x-www-form-urlencoded"
+    const val CONTENT_TYPE_MULTIPART_FORM = "multipart/form-data"
+
     var SUCCESS_CODE = "0000"
     var FAILURE_CODE = "-1000"
 
@@ -106,5 +111,38 @@ object CxHttpHelper {
             msg
         }
     }
+
+    internal fun mergeParamsToUrl(url: String, params: Map<String, Any>?): String{
+        return if(params != null){
+            val appendUrl = StringBuilder(url)
+            val iterator = params.entries.iterator()
+            appendUrl.append("?")
+            while (iterator.hasNext()) {
+                val (key, value) = iterator.next()
+                appendUrl.append(key).append("=").append(value)
+                if (!iterator.hasNext()) {
+                    break
+                }
+                appendUrl.append("&")
+            }
+            appendUrl.toString()
+        } else {
+            url
+        }
+    }
+
+    @RequiresOptIn(
+        level = RequiresOptIn.Level.ERROR,
+        message = "This API is internal in CxHttp and should not be used. It could be removed or changed without notice."
+    )
+    @Target(
+        AnnotationTarget.CLASS,
+        AnnotationTarget.TYPEALIAS,
+        AnnotationTarget.FUNCTION,
+        AnnotationTarget.PROPERTY,
+        AnnotationTarget.FIELD,
+        AnnotationTarget.CONSTRUCTOR
+    )
+    internal annotation class InternalAPI
 
 }

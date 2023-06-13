@@ -1,15 +1,10 @@
 package com.zicheng.net.cxhttp
 
-import com.zicheng.net.cxhttp.converter.RequestBodyConverter
 import com.zicheng.net.cxhttp.converter.ResponseConverter
 import com.zicheng.net.cxhttp.entity.CxHttpResult
 import com.zicheng.net.cxhttp.entity.ParameterizedTypeImpl
 import com.zicheng.net.cxhttp.request.*
-import com.zicheng.net.cxhttp.request.GetRequest
-import com.zicheng.net.cxhttp.request.PostFormRequest
-import com.zicheng.net.cxhttp.request.PostRequest
 import kotlinx.coroutines.*
-import java.io.File
 import java.io.IOException
 import java.lang.reflect.Type
 
@@ -18,140 +13,46 @@ import java.lang.reflect.Type
  * Coroutine Extensions Http（协程扩展Http）
  *
  * */
-class CxHttp private constructor(private val request: Request) {
+class CxHttp private constructor(private val request: Request, private val block: suspend Request.() -> Unit) {
 
     companion object{
 
-        /**
-         * GET Method
-         * @param url String：请求地址
-         * @param headerMap Map<String, String>?：请求头信息
-         * @param paramMap Map<String, Any>?：请求参数
-         *
-         * */
-        @JvmStatic
-        @JvmOverloads
-        fun get(url: String, headerMap: Map<String, String>? = null, paramMap: Map<String, Any>? = null): CxHttp {
-            val request = GetRequest(url).apply(headerMap, paramMap)
-            return CxHttp(request)
+        fun get(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+            return request(url, Request.Method.GET.value, block)
         }
 
-        /**
-         * POST Method
-         * @param url String：请求地址
-         * @param headerMap Map<String, String>?：请求头信息
-         * @param paramMap Map<String, Any>?：请求参数
-         * @param reqBodyConverter RequestBodyConverter：可自定义RequestBody，默认使用CxHttpHelper.converter
-         *
-         * */
-        @JvmStatic
-        @JvmOverloads
-        fun post(url: String, headerMap: Map<String, String>? = null, paramMap: Map<String, Any>? = null,
-                 reqBodyConverter: RequestBodyConverter = CxHttpHelper.converter): CxHttp {
-            val request = PostRequest(url, reqBodyConverter).apply(headerMap, paramMap)
-            return CxHttp(request)
+        fun head(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+            return request(url, Request.Method.HEAD.value, block)
         }
 
-        /**
-         * POST Method
-         * @param paramEntity Any：实体对象请求参数
-         * 此方法无法添加公共参数，其它同上
-         *
-         * */
-        @JvmStatic
-        @JvmOverloads
-        fun post(url: String, headerMap: Map<String, String>? = null, paramEntity: Any,
-                 reqBodyConverter: RequestBodyConverter = CxHttpHelper.converter): CxHttp {
-            val request = PostRequest(url, reqBodyConverter, paramEntity).apply(headerMap, null)
-            return CxHttp(request)
+        fun post(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+            return request(url, Request.Method.POST.value, block)
         }
 
-        /**
-         * POST Method
-         * @param url String：请求地址
-         * @param headerMap Map<String, String>?：请求头信息
-         * @param paramMap Map<String, Any>?：请求参数
-         *
-         * */
-        @JvmStatic
-        @JvmOverloads
-        fun postForm(url: String, headerMap: Map<String, String>? = null, paramMap: Map<String, Any>? = null): CxHttp {
-            val request = PostFormRequest(url).apply(headerMap, paramMap)
-            return CxHttp(request)
+        fun delete(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+            return request(url, Request.Method.DELETE.value, block)
         }
 
-        /**
-         * POST Method
-         * @param url String：请求地址
-         * @param headerMap Map<String, String>?：请求头信息
-         * @param paramMap Map<String, Any>?：请求参数
-         * @param fileKey String：文件key
-         * @param filePathList List<String>：文件路径List<path>
-         * @param onProgress ((Long, Long) -> Unit)?：totalLength, currentLength
-         *
-         * */
-        @JvmStatic
-        @JvmOverloads
-        fun postForm(url: String, headerMap: Map<String, String>? = null, paramMap: Map<String, Any>? = null,
-                     fileKey: String, filePathList: List<String>, onProgress: ((Long, Long) -> Unit)? = null): CxHttp {
-            val request = PostFormRequest(url, onProgress).apply(headerMap, paramMap)
-            request.file(fileKey, filePathList)
-            return CxHttp(request)
+        fun put(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+            return request(url, Request.Method.PUT.value, block)
         }
 
-        /**
-         * POST Method
-         * @param url String：请求地址
-         * @param headerMap Map<String, String>?：请求头信息
-         * @param paramMap Map<String, Any>?：请求参数
-         * @param fileKey String：文件key
-         * @param filePathMap Map<String, String>：文件路径Map<name, path>
-         * @param onProgress ((Long, Long) -> Unit)?：totalLength, currentLength
-         *
-         * */
-        @JvmStatic
-        @JvmOverloads
-        fun postForm(url: String, headerMap: Map<String, String>? = null, paramMap: Map<String, Any>? = null,
-                     fileKey: String, filePathMap: Map<String, String>, onProgress: ((Long, Long) -> Unit)? = null): CxHttp {
-            val request = PostFormRequest(url, onProgress).apply(headerMap, paramMap)
-            request.file(fileKey, filePathMap)
-            return CxHttp(request)
+        fun patch(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+            return request(url, Request.Method.PATCH.value, block)
         }
 
-        /**
-         * POST Method
-         * @param url String：请求地址
-         * @param headerMap Map<String, String>?：请求头信息
-         * @param file File：上传文件
-         * @param type String：文件类型，例“application/zip”，“image/jpeg”，默认application/octet-stream
-         *
-         * */
-        @JvmStatic
-        @JvmOverloads
-        fun postFile(url: String, headerMap: Map<String, String>? = null, file: File,
-                     type: String = CxHttpHelper.CONTENT_TYPE_OCTET_STREAM): CxHttp {
-            val request = PostFileRequest(url).apply(headerMap, null)
-            request.file(file, type)
-            return CxHttp(request)
+        fun request(url: String, method: String, block: suspend Request.() -> Unit = {}): CxHttp{
+            return CxHttp(Request(url, method), block)
         }
+
     }
 
-    var scope = CxHttpHelper.scope
-        internal set
+    @CxHttpHelper.InternalAPI
+    var scope: CoroutineScope = CxHttpHelper.scope
+
     private var respConverter: ResponseConverter = CxHttpHelper.converter
 
-    fun header(name: String, value: String) = apply {
-        request.header(name, value)
-    }
-
-    fun param(name: String, value: Any) = apply {
-        request.param(name, value)
-    }
-
-    fun tag(tag: Any) = apply {
-        request.tag(tag)
-    }
-
+    @OptIn(CxHttpHelper.InternalAPI::class)
     fun scope(scope: CoroutineScope) = apply {
         this.scope = scope
     }
@@ -164,34 +65,42 @@ class CxHttp private constructor(private val request: Request) {
         this.respConverter = respConverter
     }
 
+    @OptIn(CxHttpHelper.InternalAPI::class)
     inline fun <reified T, RESULT: CxHttpResult<T>> launch(
         crossinline awaitResult: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
         awaitResult(await())
     }
 
+    @OptIn(CxHttpHelper.InternalAPI::class)
     inline fun <reified T, RESULT: CxHttpResult<List<T>>> launchToList(
         crossinline awaitResult: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
         awaitResult(awaitToList())
     }
 
+    @OptIn(CxHttpHelper.InternalAPI::class)
     suspend inline fun <reified T, RESULT: CxHttpResult<T>> await(): RESULT = withContext(Dispatchers.IO){
         await(T::class.java)
     }
 
+    @OptIn(CxHttpHelper.InternalAPI::class)
     suspend inline fun <reified T, RESULT: CxHttpResult<List<T>>> awaitToList(): RESULT = withContext(Dispatchers.IO){
         awaitToList(T::class.java)
     }
 
+    @OptIn(CxHttpHelper.InternalAPI::class)
     inline fun <reified T, RESULT: CxHttpResult<T>> async(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
         await(T::class.java)
     }
 
+    @OptIn(CxHttpHelper.InternalAPI::class)
     inline fun <reified T, RESULT: CxHttpResult<List<T>>> asyncToList(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
         awaitToList(T::class.java)
     }
 
+    @CxHttpHelper.InternalAPI
     suspend fun <T, RESULT: CxHttpResult<T>> await(tClass: Class<T>): RESULT{
         var result = try {
+            request.block()
             // Hook and Execute request
             val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
             if(response.isSuccessful && response.body != null){
@@ -210,8 +119,10 @@ class CxHttp private constructor(private val request: Request) {
         return result
     }
 
+    @CxHttpHelper.InternalAPI
     suspend fun <T, RESULT: CxHttpResult<List<T>>> awaitToList(tClass: Class<T>): RESULT{
         var result = try {
+            request.block()
             // Hook and Execute request
             val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
             if(response.isSuccessful && response.body != null){
