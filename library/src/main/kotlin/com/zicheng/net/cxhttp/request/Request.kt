@@ -3,7 +3,7 @@ package com.zicheng.net.cxhttp.request
 import com.zicheng.net.cxhttp.CxHttpHelper
 import com.zicheng.net.cxhttp.converter.RequestBodyConverter
 import java.io.File
-
+import java.lang.IllegalArgumentException
 
 class Request internal constructor(val url: String, val method: String) {
 
@@ -11,6 +11,12 @@ class Request internal constructor(val url: String, val method: String) {
     private var _headers: MutableMap<String, String>? = null
     private var _params: MutableMap<String, Any>? = null
     private var _body: Body<*>? = null
+        set(value) {
+            if (value != null) {
+                throw IllegalArgumentException("The body cannot be set repeatedly!")
+            }
+            field = value
+        }
     val tag: Any?
         get() = _tag
     val headers: Map<String, String>?
@@ -82,11 +88,11 @@ class Request internal constructor(val url: String, val method: String) {
         this.bodyConverter = bodyConverter
     }
 
-    fun setFormBody(block: FormBody.() -> Unit = {}){
+    fun formBody(block: FormBody.() -> Unit = {}){
         FormBody(mutableListOf(), CxHttpHelper.CONTENT_TYPE_FORM).block()
     }
 
-    fun setMultipartBody(type: String = CxHttpHelper.CONTENT_TYPE_MULTIPART_FORM, block: MultipartBody.() -> Unit){
+    fun multipartBody(type: String = CxHttpHelper.CONTENT_TYPE_MULTIPART_FORM, block: MultipartBody.() -> Unit){
         MultipartBody(mutableListOf(), type).block()
     }
 

@@ -25,7 +25,8 @@ fun Request.buildOkHttp3Request(): okhttp3.Request {
             (body as ByteArrayBody).content.toRequestBody(body!!.contentType.toMediaTypeOrNull())
         }
         is EntityBody<*> -> {
-            bodyConverter.convert((body as EntityBody<*>).content).toRequestBody(bodyConverter.contentType.toMediaTypeOrNull())
+            val entityBody = (body as EntityBody<*>)
+            bodyConverter.convert(entityBody.content, entityBody.contentClass).toRequestBody(bodyConverter.contentType.toMediaTypeOrNull())
         }
         is FormBody -> {
             val formBody = body as FormBody
@@ -65,7 +66,7 @@ fun Request.buildOkHttp3Request(): okhttp3.Request {
         }
         else -> {
             if(!mergeParamsToUrl && params != null){
-                bodyConverter.convert(params).toRequestBody(bodyConverter.contentType.toMediaTypeOrNull())
+                bodyConverter.convert(params, Map::class.java).toRequestBody(bodyConverter.contentType.toMediaTypeOrNull())
             } else {
                 null
             }
