@@ -11,7 +11,6 @@ import com.zicheng.net.cxhttp.entity.CxHttpResult
 import com.zicheng.net.cxhttp.entity.JacksonType
 import com.zicheng.net.cxhttp.entity.ParameterizedTypeImpl
 import com.zicheng.net.cxhttp.entity.Response
-import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,21 +38,18 @@ class JacksonConverter @JvmOverloads constructor(override val resultClass: Class
         }
     }
 
-    override fun <T, RESULT : CxHttpResult<T>> convert(response: Response, tType: Type): RESULT {
-        return if(tType == String::class.java){
-            convert(response.code.toString(), response.message, response.body!!.string())
-        } else {
-            val realType: Type = ParameterizedTypeImpl(resultClass, tType)
-            jsonMapper.readValue(response.body!!.string(), JacksonType(realType))
-        }
+    override fun <T, RESULT : CxHttpResult<T>> convert(body: Response.Body, tType: Type): RESULT {
+        val realType = ParameterizedTypeImpl(resultClass, tType)
+        return jsonMapper.readValue(body.string(), JacksonType(realType))
     }
 
-    override fun <T, RESULT : CxHttpResult<List<T>>> convert(response: Response, listType: ParameterizedType): RESULT {
-        val realType: Type = ParameterizedTypeImpl(resultClass, listType)
-        return jsonMapper.readValue(response.body!!.string(), JacksonType(realType))
+    override fun <T, RESULT : CxHttpResult<List<T>>> convertList(body: Response.Body, tType: Type): RESULT {
+        val listType = ParameterizedTypeImpl(List::class.java, tType)
+        val realType = ParameterizedTypeImpl(resultClass, listType)
+        return jsonMapper.readValue(body.string(), JacksonType(realType))
     }
 
-    override fun <T> convert(value: T): ByteArray {
+    override fun <T> convert(value: T, tClass: Class<out T>): ByteArray {
         return jsonMapper.writeValueAsBytes(value)
     }
 

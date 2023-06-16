@@ -2,16 +2,15 @@ package com.zicheng.net.cxhttp.converter
 
 import com.zicheng.net.cxhttp.entity.CxHttpResult
 import com.zicheng.net.cxhttp.entity.Response
-import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
 interface ResponseConverter {
 
     val resultClass: Class<*>
 
-    fun <T, RESULT: CxHttpResult<T>> convert(response: Response, tType: Type): RESULT
+    fun <T, RESULT: CxHttpResult<T>> convert(body: Response.Body, tType: Type): RESULT
 
-    fun <T, RESULT: CxHttpResult<List<T>>> convert(response: Response, listType: ParameterizedType): RESULT
+    fun <T, RESULT: CxHttpResult<List<T>>> convertList(body: Response.Body, tType: Type): RESULT
 
     fun <RESULT: CxHttpResult<*>> convert(code: String, msg: String, data: Any? = null): RESULT{
         val httpResult = try {

@@ -95,9 +95,8 @@ fun main(args: Array<String>) {
             param("page", 1)
             param("pageSize", 2)
         }.launchToList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost3 ->
-                println("resultPost3: $resultPost3")
-            }
-
+            println("resultPost3: $resultPost3")
+        }
 
     }
 }

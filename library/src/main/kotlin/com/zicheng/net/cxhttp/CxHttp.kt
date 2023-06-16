@@ -104,7 +104,7 @@ class CxHttp private constructor(private val request: Request, private val block
             // Hook and Execute request
             val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
             if(response.isSuccessful && response.body != null){
-                respConverter.convert<T, RESULT>(response, tClass)
+                respConverter.convert<T, RESULT>(response.body, tClass)
             } else {
                 respConverter.convert(response.code.toString(), response.message)
             }
@@ -126,7 +126,7 @@ class CxHttp private constructor(private val request: Request, private val block
             // Hook and Execute request
             val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
             if(response.isSuccessful && response.body != null){
-                respConverter.convert<T, RESULT>(response, ParameterizedTypeImpl(List::class.java, tClass as Type))
+                respConverter.convertList<T, RESULT>(response.body, ParameterizedTypeImpl(List::class.java, tClass as Type))
             } else {
                 respConverter.convert(response.code.toString(), response.message)
             }
