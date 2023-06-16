@@ -12,7 +12,7 @@ class Request internal constructor(val url: String, val method: String) {
     private var _params: MutableMap<String, Any>? = null
     private var _body: Body<*>? = null
         set(value) {
-            if (value != null) {
+            if (field != null) {
                 throw IllegalArgumentException("The body cannot be set repeatedly!")
             }
             field = value
