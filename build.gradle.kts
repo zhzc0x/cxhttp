@@ -12,8 +12,9 @@ repositories {
 
 dependencies {
     implementation(project(":library"))
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.7.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 tasks.test {

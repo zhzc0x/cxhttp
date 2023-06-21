@@ -2,11 +2,9 @@ package com.zicheng.net.cxhttp
 
 import com.zicheng.net.cxhttp.converter.ResponseConverter
 import com.zicheng.net.cxhttp.entity.CxHttpResult
-import com.zicheng.net.cxhttp.entity.ParameterizedTypeImpl
 import com.zicheng.net.cxhttp.request.*
 import kotlinx.coroutines.*
 import java.io.IOException
-import java.lang.reflect.Type
 
 
 /**
@@ -66,77 +64,77 @@ class CxHttp private constructor(private val request: Request, private val block
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    inline fun <reified T, RESULT: CxHttpResult<T>> launch(
-        crossinline awaitResult: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
-        awaitResult(await())
+    inline fun <reified T, RESULT: CxHttpResult<T>> launchResult(
+        crossinline resultBlock: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
+        resultBlock(awaitResult())
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    inline fun <reified T, RESULT: CxHttpResult<List<T>>> launchToList(
-        crossinline awaitResult: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
-        awaitResult(awaitToList())
+    inline fun <reified T, RESULT: CxHttpResult<List<T>>> launchResultList(
+        crossinline resultBlock: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
+        resultBlock(awaitResultList())
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    suspend inline fun <reified T, RESULT: CxHttpResult<T>> await(): RESULT = withContext(Dispatchers.IO){
-        await(T::class.java)
+    suspend inline fun <reified T, RESULT: CxHttpResult<T>> awaitResult(): RESULT = withContext(Dispatchers.IO){
+        awaitResult(T::class.java)
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    suspend inline fun <reified T, RESULT: CxHttpResult<List<T>>> awaitToList(): RESULT = withContext(Dispatchers.IO){
-        awaitToList(T::class.java)
+    suspend inline fun <reified T, RESULT: CxHttpResult<List<T>>> awaitResultList(): RESULT = withContext(Dispatchers.IO){
+        awaitResultList(T::class.java)
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    inline fun <reified T, RESULT: CxHttpResult<T>> async(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
-        await(T::class.java)
+    inline fun <reified T, RESULT: CxHttpResult<T>> asyncResult(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
+        awaitResult(T::class.java)
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    inline fun <reified T, RESULT: CxHttpResult<List<T>>> asyncToList(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
-        awaitToList(T::class.java)
+    inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> asyncResultList(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
+        awaitResultList(T::class.java)
     }
 
     @CxHttpHelper.InternalAPI
-    suspend fun <T, RESULT: CxHttpResult<T>> await(tClass: Class<T>): RESULT{
+    suspend fun <T, RESULT: CxHttpResult<T>> awaitResult(tClass: Class<T>): RESULT{
         var result = try {
             request.block()
             // Hook and Execute request
             val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
             if(response.isSuccessful && response.body != null){
-                respConverter.convert<T, RESULT>(response.body, tClass)
+                respConverter.convertResult<T, RESULT>(response.body, tClass)
             } else {
-                respConverter.convert(response.code.toString(), response.message)
+                respConverter.convertResult(response.code.toString(), response.message)
             }
-        } catch (ie: IOException) {
-            respConverter.convert(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ie))
+        } catch (ex: Exception) {
+            respConverter.convertResult(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ex))
         }
         result.request = request
         result = CxHttpHelper.applyHookResult(result)
         if(result.reRequest){
-            return await(tClass)
+            return awaitResult(tClass)
         }
         return result
     }
 
     @CxHttpHelper.InternalAPI
-    suspend fun <T, RESULT: CxHttpResult<List<T>>> awaitToList(tClass: Class<T>): RESULT{
+    suspend fun <T, RESULT: CxHttpResult<List<T>>> awaitResultList(tClass: Class<T>): RESULT{
         var result = try {
             request.block()
             // Hook and Execute request
             val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
             if(response.isSuccessful && response.body != null){
-                respConverter.convertList<T, RESULT>(response.body, ParameterizedTypeImpl(List::class.java, tClass as Type))
+                respConverter.convertResultList<T, RESULT>(response.body, tClass)
             } else {
-                respConverter.convert(response.code.toString(), response.message)
+                respConverter.convertResult(response.code.toString(), response.message)
             }
-        } catch (ie: IOException) {
-            respConverter.convert(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ie))
+        } catch (ex: Exception) {
+            respConverter.convertResult(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ex))
         }
         result.request = request
         result = CxHttpHelper.applyHookResult(result)
         if(result.reRequest){
-            return awaitToList(tClass)
+            return awaitResultList(tClass)
         }
         return result
     }

@@ -1,9 +1,11 @@
+
 import com.zicheng.demo.bean.MyHttpResult
 import com.zicheng.demo.bean.ProjectInfo
 import com.zicheng.demo.bean.UserInfo
 import com.zicheng.demo.cxhttp.MyHttpCall
 import com.zicheng.net.cxhttp.CxHttp
 import com.zicheng.net.cxhttp.CxHttpHelper
+import com.zicheng.net.cxhttp.converter.GsonConverter
 import com.zicheng.net.cxhttp.converter.JacksonConverter
 import kotlinx.coroutines.*
 
@@ -47,7 +49,7 @@ const val TEST_URL_USER_UPDATE = "test://www.******.com/user/update"
 const val TEST_URL_USER_PROJECTS = "test://www.******.com/user/projects"
 
 fun main(args: Array<String>) {
-    val jacksonConverter = JacksonConverter(MyHttpResult::class.java)
+    val jacksonConverter = GsonConverter(MyHttpResult::class.java)
     CxHttpHelper.init(scope = MainScope(), debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
     CxHttpHelper.hookRequest { request ->
         //此处可添加一些公共参数和头信息
@@ -64,13 +66,13 @@ fun main(args: Array<String>) {
     runBlocking {
         val job = CxHttp.get("https://www.baidu.com")
             //此处可指定协程，不指定默认使用CxHttpHelper.scope
-            .launch<String, MyHttpResult<String>>{ resultGet1 ->
+            .launchResult<String, MyHttpResult<String>>{ resultGet1 ->
             println("resultGet1: $resultGet1")
         }
-        val resultGet2: MyHttpResult<String> = CxHttp.get("https://www.baidu.com").await()
+        val resultGet2: MyHttpResult<String> = CxHttp.get("https://www.baidu.com").awaitResult()
         println("resultGet2: $resultGet2")
 
-        val resultDeferred = CxHttp.get("https://www.baidu.com").async<String, MyHttpResult<String>>()
+        val resultDeferred = CxHttp.get("https://www.baidu.com").asyncResult<String, MyHttpResult<String>>()
         val resultGet3 = resultDeferred.await()
         println("resultGet3: $resultGet3")
 
@@ -82,21 +84,20 @@ fun main(args: Array<String>) {
                 "occupation" to "农民"))
             //requestBodyConverter可单独自定义，实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()指定的全局converter
             setBodyConverter(jacksonConverter)
-        }.launch<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
+        }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
             println("resultPost1: $resultPost1")
         }
         CxHttp.post(TEST_URL_USER_UPDATE){
             setBody(UserInfo("zhangzicheng", 32, "男", "农民"), UserInfo::class.java)
-        }.launch<UserInfo, MyHttpResult<UserInfo>>{ resultPost2 ->
+        }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost2 ->
             println("resultPost2: $resultPost2")
         }
 
         CxHttp.post(TEST_URL_USER_PROJECTS){
             param("page", 1)
             param("pageSize", 2)
-        }.launchToList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost3 ->
+        }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost3 ->
             println("resultPost3: $resultPost3")
         }
-
     }
 }

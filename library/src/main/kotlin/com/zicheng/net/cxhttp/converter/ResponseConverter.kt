@@ -1,5 +1,6 @@
 package com.zicheng.net.cxhttp.converter
 
+import com.zicheng.net.cxhttp.CxHttpHelper
 import com.zicheng.net.cxhttp.entity.CxHttpResult
 import com.zicheng.net.cxhttp.entity.Response
 import java.lang.reflect.Type
@@ -8,11 +9,14 @@ interface ResponseConverter {
 
     val resultClass: Class<*>
 
-    fun <T, RESULT: CxHttpResult<T>> convert(body: Response.Body, tType: Type): RESULT
+    fun <T> convert(body: Response.Body, type: Class<T>): T
 
-    fun <T, RESULT: CxHttpResult<List<T>>> convertList(body: Response.Body, tType: Type): RESULT
+    fun <T, RESULT: CxHttpResult<T>> convertResult(body: Response.Body, tType: Type): RESULT
 
-    fun <RESULT: CxHttpResult<*>> convert(code: String, msg: String, data: Any? = null): RESULT{
+    fun <T, RESULT: CxHttpResult<List<T>>> convertResultList(body: Response.Body, tType: Type): RESULT
+
+    @CxHttpHelper.InternalAPI
+    fun <RESULT: CxHttpResult<*>> convertResult(code: String, msg: String, data: Any? = null): RESULT{
         val httpResult = try {
             val constructor = resultClass.getConstructor(String::class.java, String::class.java, Any::class.java)
             constructor.newInstance(code, msg, data)

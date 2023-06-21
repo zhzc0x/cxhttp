@@ -38,14 +38,17 @@ class JacksonConverter @JvmOverloads constructor(override val resultClass: Class
         }
     }
 
-    override fun <T, RESULT : CxHttpResult<T>> convert(body: Response.Body, tType: Type): RESULT {
+    override fun <T> convert(body: Response.Body, type: Class<T>): T {
+        return jsonMapper.readValue(body.string(), JacksonType(type))
+    }
+
+    override fun <T, RESULT : CxHttpResult<T>> convertResult(body: Response.Body, tType: Type): RESULT {
         val realType = ParameterizedTypeImpl(resultClass, tType)
         return jsonMapper.readValue(body.string(), JacksonType(realType))
     }
 
-    override fun <T, RESULT : CxHttpResult<List<T>>> convertList(body: Response.Body, tType: Type): RESULT {
-        val listType = ParameterizedTypeImpl(List::class.java, tType)
-        val realType = ParameterizedTypeImpl(resultClass, listType)
+    override fun <T, RESULT : CxHttpResult<List<T>>> convertResultList(body: Response.Body, tType: Type): RESULT {
+        val realType = ParameterizedTypeImpl(resultClass, ParameterizedTypeImpl(List::class.java, tType))
         return jsonMapper.readValue(body.string(), JacksonType(realType))
     }
 

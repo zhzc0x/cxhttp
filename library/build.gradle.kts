@@ -14,4 +14,6 @@ dependencies {
     api("com.squareup.okhttp3:logging-interceptor:4.9.3")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.1")
     compileOnly("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
+    compileOnly("com.google.code.gson:gson:2.10.1")
+
 }
