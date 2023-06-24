@@ -7,10 +7,11 @@ import java.io.InputStream
 
 class Response(val code: Int, val message: String, val body: Body?){
 
-    @CxHttpHelper.InternalAPI
-    lateinit var converter: ResponseConverter
+
     internal lateinit var request: Request
     internal var reRequest: Boolean = false//是否重新请求
+    @CxHttpHelper.InternalAPI
+    lateinit var converter: ResponseConverter
 
     val isSuccessful: Boolean
         get() = code in 200..299

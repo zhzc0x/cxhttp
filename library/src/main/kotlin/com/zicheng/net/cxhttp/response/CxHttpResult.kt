@@ -17,27 +17,27 @@ abstract class CxHttpResult<T>(private val cxCode: String,
 }
 
 @OptIn(CxHttpHelper.InternalAPI::class)
-inline fun <reified T, RESULT: CxHttpResult<T>> Response.result(): RESULT{
+inline fun <T, reified RESULT: CxHttpResult<T>> Response.result(): RESULT{
     return if(isSuccessful && body != null){
         try {
-            converter.convertResult(body, T::class.java)
+            converter.convertResult(body, RESULT::class.java)
         } catch (ex: Exception) {
-            converter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常")
+            converter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常", resultClass=RESULT::class.java)
         }
     } else {
-        converter.convertResult(code.toString(), message)
+        converter.convertResult(code.toString(), message, resultClass=RESULT::class.java)
     }
 }
 
 @OptIn(CxHttpHelper.InternalAPI::class)
-inline fun <reified T, RESULT: CxHttpResult<List<T>>> Response.resultList(): RESULT{
+inline fun <T, reified RESULT: CxHttpResult<List<T>>> Response.resultList(): RESULT{
     return if(isSuccessful && body != null){
         try {
-            converter.convertResultList(body, T::class.java)
+            converter.convertResultList(body, RESULT::class.java)
         } catch (ex: Exception) {
-            converter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常")
+            converter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常", resultClass=RESULT::class.java)
         }
     } else {
-        converter.convertResult(code.toString(), message)
+        converter.convertResult(code.toString(), message, resultClass=RESULT::class.java)
     }
 }

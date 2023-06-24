@@ -50,7 +50,7 @@ const val TEST_URL_USER_UPDATE = "test://www.******.com/user/update"
 const val TEST_URL_USER_PROJECTS = "test://www.******.com/user/projects"
 
 fun main(args: Array<String>) {
-    val jacksonConverter = GsonConverter(MyHttpResult::class.java)
+    val jacksonConverter = JacksonConverter()
     CxHttpHelper.init(scope = MainScope(), debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
     CxHttpHelper.hookRequest { request ->
         //此处可添加一些公共参数和头信息

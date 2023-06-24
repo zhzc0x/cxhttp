@@ -2,13 +2,11 @@ package com.zicheng.net.cxhttp.converter
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
 import com.zicheng.net.cxhttp.CxHttpHelper
 import com.zicheng.net.cxhttp.response.CxHttpResult
 import com.zicheng.net.cxhttp.response.Response
-import java.lang.reflect.Type
 
-class GsonConverter @JvmOverloads constructor(override val resultClass: Class<*>, private var _gson: Gson? = null,
+class GsonConverter @JvmOverloads constructor(private var _gson: Gson? = null,
                                               onConfiguration: GsonBuilder.() -> Unit = {}): CxHttpConverter {
 
     override val contentType: String = CxHttpHelper.CONTENT_TYPE_JSON
@@ -24,23 +22,19 @@ class GsonConverter @JvmOverloads constructor(override val resultClass: Class<*>
         }
     }
 
-    override fun <T> convert(body: Response.Body, type: Class<T>): T {
-        return gson.fromJson(body.string(), TypeToken.get(type))
+    override fun <T> convert(body: Response.Body, tType: Class<T>): T {
+        return gson.fromJson(body.string(), tType)
     }
 
-    override fun <T, RESULT : CxHttpResult<T>> convertResult(body: Response.Body, tType: Type): RESULT {
-        val realType = ParameterizedTypeImpl(resultClass, tType)
-        @Suppress("UNCHECKED_CAST")
-        return gson.fromJson(body.string(), TypeToken.get(realType)) as RESULT
+    override fun <T, RESULT : CxHttpResult<T>> convertResult(body: Response.Body, resultType: Class<RESULT>): RESULT {
+        return gson.fromJson(body.string(), resultType)
     }
 
-    override fun <T, RESULT : CxHttpResult<List<T>>> convertResultList(body: Response.Body, tType: Type): RESULT {
-        val realType = ParameterizedTypeImpl(resultClass, ParameterizedTypeImpl(List::class.java, tType))
-        @Suppress("UNCHECKED_CAST")
-        return gson.fromJson(body.string(), TypeToken.get(realType)) as RESULT
+    override fun <T, RESULT : CxHttpResult<List<T>>> convertResultList(body: Response.Body, resultType: Class<RESULT>): RESULT {
+        return gson.fromJson(body.string(), resultType)
     }
 
-    override fun <T> convert(value: T, tClass: Class<out T>): ByteArray {
+    override fun <T> convert(value: T, tType: Class<out T>): ByteArray {
         return gson.toJson(value).toByteArray()
     }
 

@@ -4,6 +4,6 @@ interface RequestBodyConverter {
 
     val contentType: String
 
-    fun <T> convert(value: T, tClass: Class<out T>): ByteArray
+    fun <T> convert(value: T, tType: Class<out T>): ByteArray
 
 }

@@ -14,7 +14,7 @@ import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.*
 
-class JacksonConverter @JvmOverloads constructor(override val resultClass: Class<*>, private var _jsonMapper: JsonMapper? = null,
+class JacksonConverter @JvmOverloads constructor(private var _jsonMapper: JsonMapper? = null,
                                                  onConfiguration: JsonMapper.Builder.() -> Unit = {}): CxHttpConverter {
 
     override val contentType: String = CxHttpHelper.CONTENT_TYPE_JSON
@@ -37,18 +37,18 @@ class JacksonConverter @JvmOverloads constructor(override val resultClass: Class
         }
     }
 
-    override fun <T> convert(body: Response.Body, type: Class<T>): T {
-        return jsonMapper.readValue(body.string(), JacksonType(type))
+    override fun <T> convert(body: Response.Body, tType: Class<T>): T {
+        return jsonMapper.readValue(body.string(), JacksonType(tType))
     }
 
-    override fun <T, RESULT : CxHttpResult<T>> convertResult(body: Response.Body, tType: Type): RESULT {
-        val realType = ParameterizedTypeImpl(resultClass, tType)
-        return jsonMapper.readValue(body.string(), JacksonType(realType))
+    override fun <T, RESULT : CxHttpResult<T>> convertResult(body: Response.Body, resultType: Class<RESULT>): RESULT {
+//        val realType = ParameterizedTypeImpl(resultClass, tType)
+        return jsonMapper.readValue(body.string(), JacksonType(resultType))
     }
 
-    override fun <T, RESULT : CxHttpResult<List<T>>> convertResultList(body: Response.Body, tType: Type): RESULT {
-        val realType = ParameterizedTypeImpl(resultClass, ParameterizedTypeImpl(List::class.java, tType))
-        return jsonMapper.readValue(body.string(), JacksonType(realType))
+    override fun <T, RESULT : CxHttpResult<List<T>>> convertResultList(body: Response.Body, resultType: Class<RESULT>): RESULT {
+//        val realType = ParameterizedTypeImpl(resultClass, ParameterizedTypeImpl(List::class.java, tType))
+        return jsonMapper.readValue(body.string(), JacksonType(resultType))
     }
 
     override fun <T> convert(value: T, tClass: Class<out T>): ByteArray {

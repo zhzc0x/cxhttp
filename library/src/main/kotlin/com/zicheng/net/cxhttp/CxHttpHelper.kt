@@ -4,7 +4,6 @@ import com.zicheng.net.cxhttp.call.CxHttpCall
 import com.zicheng.net.cxhttp.call.OkHttp3Call
 import com.zicheng.net.cxhttp.converter.CxHttpConverter
 import com.zicheng.net.cxhttp.converter.JacksonConverter
-import com.zicheng.net.cxhttp.response.HttpResult
 import com.zicheng.net.cxhttp.response.Response
 import com.zicheng.net.cxhttp.hook.*
 import com.zicheng.net.cxhttp.request.Request
@@ -53,7 +52,7 @@ object CxHttpHelper {
         if (debugLog) {
             addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
         }
-    }, converter: CxHttpConverter = JacksonConverter(HttpResult::class.java)){
+    }, converter: CxHttpConverter = JacksonConverter()){
         this.scope = scope
         this.debugLog = debugLog
         this.call = call

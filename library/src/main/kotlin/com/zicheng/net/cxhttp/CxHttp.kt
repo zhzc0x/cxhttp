@@ -71,13 +71,13 @@ class CxHttp private constructor(private val request: Request, private val block
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    inline fun <reified T, RESULT: CxHttpResult<T>> launchResult(
+    inline fun <T, reified RESULT: CxHttpResult<T>> launchResult(
         crossinline resultBlock: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
         resultBlock(awaitResult())
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    inline fun <reified T, RESULT: CxHttpResult<List<T>>> launchResultList(
+    inline fun <T, reified RESULT: CxHttpResult<List<T>>> launchResultList(
         crossinline resultBlock: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
         resultBlock(awaitResultList())
     }
@@ -88,12 +88,12 @@ class CxHttp private constructor(private val request: Request, private val block
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    suspend inline fun <reified T, RESULT: CxHttpResult<T>> awaitResult(): RESULT = withContext(Dispatchers.IO){
+    suspend inline fun <T, reified RESULT: CxHttpResult<T>> awaitResult(): RESULT = withContext(Dispatchers.IO){
         awaitImpl().result<T, RESULT>()
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    suspend inline fun <reified T, RESULT: CxHttpResult<List<T>>> awaitResultList(): RESULT = withContext(Dispatchers.IO){
+    suspend inline fun <T, reified RESULT: CxHttpResult<List<T>>> awaitResultList(): RESULT = withContext(Dispatchers.IO){
         awaitImpl().resultList<T, RESULT>()
     }
 
@@ -103,12 +103,12 @@ class CxHttp private constructor(private val request: Request, private val block
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    inline fun <reified T, RESULT: CxHttpResult<T>> asyncResult(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
+    inline fun <T, reified RESULT: CxHttpResult<T>> asyncResult(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
         awaitImpl().result<T, RESULT>()
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> asyncResultList(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
+    inline fun <T, reified RESULT: CxHttpResult<List<T>>> asyncResultList(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
         awaitImpl().resultList<T, RESULT>()
     }
 
