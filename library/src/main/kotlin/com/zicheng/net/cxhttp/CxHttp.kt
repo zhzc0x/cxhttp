@@ -1,10 +1,12 @@
 package com.zicheng.net.cxhttp
 
 import com.zicheng.net.cxhttp.converter.ResponseConverter
-import com.zicheng.net.cxhttp.entity.CxHttpResult
+import com.zicheng.net.cxhttp.response.CxHttpResult
+import com.zicheng.net.cxhttp.response.Response
 import com.zicheng.net.cxhttp.request.*
+import com.zicheng.net.cxhttp.response.result
+import com.zicheng.net.cxhttp.response.resultList
 import kotlinx.coroutines.*
-import java.io.IOException
 
 
 /**
@@ -64,6 +66,11 @@ class CxHttp private constructor(private val request: Request, private val block
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
+    inline fun launch(crossinline responseBlock: suspend CoroutineScope.(Response) -> Unit) = scope.launch {
+        responseBlock(await())
+    }
+
+    @OptIn(CxHttpHelper.InternalAPI::class)
     inline fun <reified T, RESULT: CxHttpResult<T>> launchResult(
         crossinline resultBlock: suspend CoroutineScope.(RESULT) -> Unit) = scope.launch {
         resultBlock(awaitResult())
@@ -76,67 +83,51 @@ class CxHttp private constructor(private val request: Request, private val block
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
+    suspend fun await(): Response = withContext(Dispatchers.IO){
+        awaitImpl()
+    }
+
+    @OptIn(CxHttpHelper.InternalAPI::class)
     suspend inline fun <reified T, RESULT: CxHttpResult<T>> awaitResult(): RESULT = withContext(Dispatchers.IO){
-        awaitResult(T::class.java)
+        awaitImpl().result<T, RESULT>()
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
     suspend inline fun <reified T, RESULT: CxHttpResult<List<T>>> awaitResultList(): RESULT = withContext(Dispatchers.IO){
-        awaitResultList(T::class.java)
+        awaitImpl().resultList<T, RESULT>()
+    }
+
+    @OptIn(CxHttpHelper.InternalAPI::class)
+    fun async(): Deferred<Response> = scope.async(Dispatchers.IO) {
+        awaitImpl()
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
     inline fun <reified T, RESULT: CxHttpResult<T>> asyncResult(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
-        awaitResult(T::class.java)
+        awaitImpl().result<T, RESULT>()
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
     inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> asyncResultList(): Deferred<RESULT> = scope.async(Dispatchers.IO) {
-        awaitResultList(T::class.java)
+        awaitImpl().resultList<T, RESULT>()
     }
 
     @CxHttpHelper.InternalAPI
-    suspend fun <T, RESULT: CxHttpResult<T>> awaitResult(tClass: Class<T>): RESULT{
-        var result = try {
+    suspend fun awaitImpl(): Response {
+        var response = try {
             request.block()
             // Hook and Execute request
-            val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
-            if(response.isSuccessful && response.body != null){
-                respConverter.convertResult<T, RESULT>(response.body, tClass)
-            } else {
-                respConverter.convertResult(response.code.toString(), response.message)
-            }
+            CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
         } catch (ex: Exception) {
-            respConverter.convertResult(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ex))
+            Response(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ex), null)
         }
-        result.request = request
-        result = CxHttpHelper.applyHookResult(result)
-        if(result.reRequest){
-            return awaitResult(tClass)
+        response.converter = respConverter
+        response.request = request
+        response = CxHttpHelper.applyHookResponse(response)
+        if(response.reRequest){
+            return await()
         }
-        return result
-    }
-
-    @CxHttpHelper.InternalAPI
-    suspend fun <T, RESULT: CxHttpResult<List<T>>> awaitResultList(tClass: Class<T>): RESULT{
-        var result = try {
-            request.block()
-            // Hook and Execute request
-            val response = CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
-            if(response.isSuccessful && response.body != null){
-                respConverter.convertResultList<T, RESULT>(response.body, tClass)
-            } else {
-                respConverter.convertResult(response.code.toString(), response.message)
-            }
-        } catch (ex: Exception) {
-            respConverter.convertResult(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ex))
-        }
-        result.request = request
-        result = CxHttpHelper.applyHookResult(result)
-        if(result.reRequest){
-            return awaitResultList(tClass)
-        }
-        return result
+        return response
     }
 
 }

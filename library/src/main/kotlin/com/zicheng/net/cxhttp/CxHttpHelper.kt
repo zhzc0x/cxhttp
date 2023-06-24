@@ -4,9 +4,8 @@ import com.zicheng.net.cxhttp.call.CxHttpCall
 import com.zicheng.net.cxhttp.call.OkHttp3Call
 import com.zicheng.net.cxhttp.converter.CxHttpConverter
 import com.zicheng.net.cxhttp.converter.JacksonConverter
-import com.zicheng.net.cxhttp.entity.CxHttpResult
-import com.zicheng.net.cxhttp.entity.HttpResult
-import com.zicheng.net.cxhttp.exception.CxHttpException
+import com.zicheng.net.cxhttp.response.HttpResult
+import com.zicheng.net.cxhttp.response.Response
 import com.zicheng.net.cxhttp.hook.*
 import com.zicheng.net.cxhttp.request.Request
 import kotlinx.coroutines.CoroutineScope
@@ -37,16 +36,16 @@ object CxHttpHelper {
     const val CONTENT_TYPE_MULTIPART_FORM = "multipart/form-data"
 
     var SUCCESS_CODE = "0000"
-    var FAILURE_CODE = "-1000"
+    var FAILURE_CODE = -1000
 
     internal lateinit var scope: CoroutineScope
     internal lateinit var call: CxHttpCall
     internal lateinit var converter: CxHttpConverter
     internal var debugLog = false
     private val hookRequestInstance = HookRequest()
-    private val hookResultInstance = HookResult()
+    private val hookResponseInstance = HookResponse()
     internal var hookRequest: HookRequestFunction = hookRequestInstance
-    internal var hookResult: HookResultFunction = hookResultInstance
+    internal var hookResponse: HookResponseFunction = hookResponseInstance
 
     @JvmOverloads
     fun init(scope: CoroutineScope, debugLog: Boolean, call: CxHttpCall = OkHttp3Call{
@@ -65,17 +64,16 @@ object CxHttpHelper {
         hookRequest = hook
     }
 
-    fun hookResult(hook: HookResultFunction){
-        hookResult = hook
+    fun hookResponse(hook: HookResponseFunction){
+        hookResponse = hook
     }
 
     internal suspend inline fun applyHookRequest(request: Request): Request {
         return hookRequestInstance.hookRequest(request)
     }
 
-    internal suspend inline fun <RESULT: CxHttpResult<*>> applyHookResult(result: CxHttpResult<*>): RESULT{
-        @Suppress("UNCHECKED_CAST")
-        return hookResultInstance.hookResult(result) as RESULT
+    internal suspend inline fun applyHookResponse(response: Response): Response {
+        return hookResponseInstance.hookResponse(response)
     }
 
     internal fun getMediaType(fName: String): MediaType {
@@ -90,20 +88,16 @@ object CxHttpHelper {
         if(debugLog){
             ex.printStackTrace()
         }
-        val msg = if(ex is CxHttpException){
-            when (ex.ie) {
-                is UnknownHostException, is SSLPeerUnverifiedException -> {
-                    "域名解析异常"
-                }
-                is InterruptedIOException, is SocketException -> {
-                    "网络异常"
-                }
-                else -> {
-                    "未知异常"
-                }
+        val msg = when (ex) {
+            is UnknownHostException, is SSLPeerUnverifiedException -> {
+                "域名解析异常"
             }
-        } else {
-            "数据解析异常"
+            is InterruptedIOException, is SocketException -> {
+                "网络异常"
+            }
+            else -> {
+                "未知异常"
+            }
         }
         return if(ex.message != null){
             "$msg：${ex.message}"

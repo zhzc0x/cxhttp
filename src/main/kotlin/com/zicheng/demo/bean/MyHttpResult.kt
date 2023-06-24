@@ -1,6 +1,6 @@
 package com.zicheng.demo.bean
 
-import com.zicheng.net.cxhttp.entity.CxHttpResult
+import com.zicheng.net.cxhttp.response.CxHttpResult
 
 data class MyHttpResult<T>(val code: Int,
                            val errorMsg: String,

@@ -4,7 +4,8 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.zicheng.net.cxhttp.CxHttpHelper
-import com.zicheng.net.cxhttp.entity.*
+import com.zicheng.net.cxhttp.response.CxHttpResult
+import com.zicheng.net.cxhttp.response.Response
 import java.lang.reflect.Type
 
 class GsonConverter @JvmOverloads constructor(override val resultClass: Class<*>, private var _gson: Gson? = null,
@@ -29,11 +30,13 @@ class GsonConverter @JvmOverloads constructor(override val resultClass: Class<*>
 
     override fun <T, RESULT : CxHttpResult<T>> convertResult(body: Response.Body, tType: Type): RESULT {
         val realType = ParameterizedTypeImpl(resultClass, tType)
+        @Suppress("UNCHECKED_CAST")
         return gson.fromJson(body.string(), TypeToken.get(realType)) as RESULT
     }
 
     override fun <T, RESULT : CxHttpResult<List<T>>> convertResultList(body: Response.Body, tType: Type): RESULT {
         val realType = ParameterizedTypeImpl(resultClass, ParameterizedTypeImpl(List::class.java, tType))
+        @Suppress("UNCHECKED_CAST")
         return gson.fromJson(body.string(), TypeToken.get(realType)) as RESULT
     }
 

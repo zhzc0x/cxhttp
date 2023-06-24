@@ -2,15 +2,14 @@ package com.zicheng.net.cxhttp.converter
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.json.JsonWriteFeature
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.zicheng.net.cxhttp.CxHttpHelper
-import com.zicheng.net.cxhttp.entity.CxHttpResult
-import com.zicheng.net.cxhttp.entity.JacksonType
-import com.zicheng.net.cxhttp.entity.ParameterizedTypeImpl
-import com.zicheng.net.cxhttp.entity.Response
+import com.zicheng.net.cxhttp.response.CxHttpResult
+import com.zicheng.net.cxhttp.response.Response
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.*
@@ -56,4 +55,10 @@ class JacksonConverter @JvmOverloads constructor(override val resultClass: Class
         return jsonMapper.writeValueAsBytes(value)
     }
 
+}
+
+class JacksonType<T>(private val type: Type) : TypeReference<T>() {
+    override fun getType(): Type {
+        return type
+    }
 }

@@ -6,8 +6,7 @@ import TEST_URL_USER_PROJECTS
 import TEST_URL_USER_UPDATE
 import com.zicheng.net.cxhttp.call.CxHttpCall
 import com.zicheng.net.cxhttp.call.OkHttp3Call
-import com.zicheng.net.cxhttp.entity.Response
-import com.zicheng.net.cxhttp.exception.CxHttpException
+import com.zicheng.net.cxhttp.response.Response
 import com.zicheng.net.cxhttp.request.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
@@ -19,7 +18,6 @@ class MyHttpCall: CxHttpCall {
         addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
     }
 
-    @Throws(CxHttpException::class)
     override suspend fun await(request: Request): Response {
         when (request.url) {
             TEST_URL_USER_UPDATE -> {

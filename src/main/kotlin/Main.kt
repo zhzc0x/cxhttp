@@ -7,6 +7,7 @@ import com.zicheng.net.cxhttp.CxHttp
 import com.zicheng.net.cxhttp.CxHttpHelper
 import com.zicheng.net.cxhttp.converter.GsonConverter
 import com.zicheng.net.cxhttp.converter.JacksonConverter
+import com.zicheng.net.cxhttp.response.body
 import kotlinx.coroutines.*
 
 
@@ -57,23 +58,23 @@ fun main(args: Array<String>) {
         request.header("token", "1a2b3c4d5e6f")
         request
     }
-    CxHttpHelper.hookResult { result ->
+    CxHttpHelper.hookResponse { response ->
         //此处可以预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等
-        result.request
-        result.setReRequest(false)//设置是否重新请求，默认false
-        result
+        response.request
+        response.setReRequest(false)//设置是否重新请求，默认false
+        response
     }
     runBlocking {
         val job = CxHttp.get("https://www.baidu.com")
             //此处可指定协程，不指定默认使用CxHttpHelper.scope
-            .launchResult<String, MyHttpResult<String>>{ resultGet1 ->
-            println("resultGet1: $resultGet1")
+            .scope(this).launch{ response ->
+            println("resultGet1: ${response.body<String>()}")
         }
-        val resultGet2: MyHttpResult<String> = CxHttp.get("https://www.baidu.com").awaitResult()
+        val resultGet2: String = CxHttp.get("https://www.baidu.com").await().body()
         println("resultGet2: $resultGet2")
 
-        val resultDeferred = CxHttp.get("https://www.baidu.com").asyncResult<String, MyHttpResult<String>>()
-        val resultGet3 = resultDeferred.await()
+        val resultDeferred = CxHttp.get("https://www.baidu.com").async()
+        val resultGet3: String = resultDeferred.await().body()
         println("resultGet3: $resultGet3")
 
         CxHttp.post(TEST_URL_USER_UPDATE){

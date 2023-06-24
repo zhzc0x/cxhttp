@@ -1,8 +1,8 @@
 package com.zicheng.net.cxhttp.converter
 
 import com.zicheng.net.cxhttp.CxHttpHelper
-import com.zicheng.net.cxhttp.entity.CxHttpResult
-import com.zicheng.net.cxhttp.entity.Response
+import com.zicheng.net.cxhttp.response.CxHttpResult
+import com.zicheng.net.cxhttp.response.Response
 import java.lang.reflect.Type
 
 interface ResponseConverter {

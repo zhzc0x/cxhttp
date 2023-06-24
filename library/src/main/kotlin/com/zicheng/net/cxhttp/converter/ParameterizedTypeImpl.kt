@@ -1,4 +1,4 @@
-package com.zicheng.net.cxhttp.entity
+package com.zicheng.net.cxhttp.converter
 
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type

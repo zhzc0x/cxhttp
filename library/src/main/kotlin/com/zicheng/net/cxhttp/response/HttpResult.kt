@@ -1,4 +1,4 @@
-package com.zicheng.net.cxhttp.entity
+package com.zicheng.net.cxhttp.response
 
 data class HttpResult<T>(val code: String,
                          val msg: String,

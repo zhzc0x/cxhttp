@@ -1,7 +1,6 @@
 package com.zicheng.net.cxhttp.call
 
-import com.zicheng.net.cxhttp.entity.Response
-import com.zicheng.net.cxhttp.exception.CxHttpException
+import com.zicheng.net.cxhttp.response.Response
 import com.zicheng.net.cxhttp.request.Request
 import com.zicheng.net.cxhttp.request.buildOkHttp3Request
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -28,7 +27,6 @@ class OkHttp3Call @JvmOverloads constructor(private var _okHttpClient: OkHttpCli
         }
     }
 
-    @Throws(CxHttpException::class)
     override suspend fun await(request: Request): Response {
         val realCall = okHttpClient.newCall(request.buildOkHttp3Request())
         return suspendCancellableCoroutine { continuation ->
@@ -56,7 +54,7 @@ class OkHttp3Call @JvmOverloads constructor(private var _okHttpClient: OkHttpCli
                     if (continuation.isCancelled) {
                         return
                     }
-                    continuation.resumeWithException(CxHttpException(e))
+                    continuation.resumeWithException(e)
                 }
             })
             continuation.invokeOnCancellation {
