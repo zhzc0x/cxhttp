@@ -14,7 +14,7 @@ import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.*
 
-class JacksonConverter @JvmOverloads constructor(private var _jsonMapper: JsonMapper? = null,
+class JacksonConverter(private var _jsonMapper: JsonMapper? = null,
                                                  onConfiguration: JsonMapper.Builder.() -> Unit = {}): CxHttpConverter {
 
     override val contentType: String = CxHttpHelper.CONTENT_TYPE_JSON

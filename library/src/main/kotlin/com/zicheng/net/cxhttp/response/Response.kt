@@ -31,30 +31,35 @@ data class Response(val code: Int, val message: String, val body: Body?){
 
 }
 
-@OptIn(CxHttpHelper.InternalAPI::class)
+inline fun <reified T> Response.body(): T{
+    return bodyOrNull(T::class.java)!!
+}
+
+fun <T> Response.body(type: Class<T>): T{
+    return bodyOrNull(type)!!
+}
+
 inline fun <reified T> Response.bodyOrNull(): T?{
-    return body(T::class.java)
+    return bodyOrNull(T::class.java)
 }
 
 @OptIn(CxHttpHelper.InternalAPI::class)
 fun <T> Response.bodyOrNull(type: Class<T>): T?{
-    return body(type)
-}
-
-@OptIn(CxHttpHelper.InternalAPI::class)
-inline fun <reified T> Response.body(): T{
-    return body(T::class.java)!!
-}
-
-@OptIn(CxHttpHelper.InternalAPI::class)
-fun <T> Response.body(type: Class<T>): T?{
     if(body == null){
         return null
     }
-    if(type == String::class.java || type == Int::class.java || type == Long::class.java ||
-        type == Boolean::class.java || type == Double::class.java || type == Float::class.java){
-        @Suppress("UNCHECKED_CAST")
-        return body.string() as T
+    return try {
+        if(type == String::class.java || type == Int::class.java || type == Long::class.java ||
+            type == Boolean::class.java || type == Double::class.java || type == Float::class.java){
+            @Suppress("UNCHECKED_CAST")
+            body.string() as T
+        } else {
+            converter.convert(body, type)
+        }
+    } catch (ex: Exception){
+        if(CxHttpHelper.debugLog){
+            ex.printStackTrace()
+        }
+        null
     }
-    return converter.convert(body, type)
 }

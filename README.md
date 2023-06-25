@@ -35,7 +35,7 @@ Coroutine Extensions Http（协程扩展Http）
 
 - 支持hookRequest（添加公共头信息、参数等）和hookResponse（预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等）功能
 
-- 支持自定义CxHttpCall，默认实现OkHttp3Call
+- 支持自定义CxHttpCall，默认实现Okhttp3Call
 
 # 示例
 
@@ -48,6 +48,9 @@ repositories {
 
 dependencies {
     implementation("io.github.zicheng2019:cxhttp:1.0.0")
+    //默认网络请求库Okhttp3Call，如果使用其它网络库可去掉
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")//最新版本不兼容Android4.4
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     //可选JacksonConverter()
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
     //可选GsonConverter()
@@ -90,27 +93,37 @@ dependencies {
         println("resultGet3: $resultGet3")
 
         CxHttp.post(TEST_URL_USER_UPDATE){
+            //You can set params or body
             params(mapOf(
                 "name" to "zhangzicheng",
                 "age" to 32,
                 "gender" to "男",
                 "occupation" to "农民"))
-            //requestBodyConverter可单独自定义，实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()指定的全局converter
-            setBodyConverter(jacksonConverter)
+            setBody(UserInfo("zhangzicheng", 32, "男", "农民"), UserInfo::class.java)
+            //可单独设置requestBodyConverter，自定义实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()设置的全局converter
+            bodyConverter = jacksonConverter
         }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
             println("resultPost1: $resultPost1")
-        }
-        CxHttp.post(TEST_URL_USER_UPDATE){
-            setBody(UserInfo("zhangzicheng", 32, "男", "农民"), UserInfo::class.java)
-        }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost2 ->
-            println("resultPost2: $resultPost2")
         }
         CxHttp.post(TEST_URL_USER_PROJECTS){
             param("page", 1)
             param("pageSize", 2)
-        }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost3 ->
-            println("resultPost3: $resultPost3")
+        }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost2 ->
+            println("resultPost2: $resultPost2")
         }
+
+        CxHttp.post("form url"){
+            formBody {
+                append("name", "value")
+            }
+        }.await().isSuccessful
+        CxHttp.post("multipart url"){
+            multipartBody {
+                append("name", "value")
+                append("name", "filename", "filepath")
+                append("name", null, File("filepath"))
+            }
+        }.await().isSuccessful
     }
 ```
 

@@ -5,7 +5,7 @@ import JSON_USER_INFO
 import TEST_URL_USER_PROJECTS
 import TEST_URL_USER_UPDATE
 import com.zicheng.net.cxhttp.call.CxHttpCall
-import com.zicheng.net.cxhttp.call.OkHttp3Call
+import com.zicheng.net.cxhttp.call.Okhttp3Call
 import com.zicheng.net.cxhttp.response.Response
 import com.zicheng.net.cxhttp.request.Request
 import okhttp3.logging.HttpLoggingInterceptor
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 
 class MyHttpCall: CxHttpCall {
 
-    private val okHttp3Call = OkHttp3Call{
+    private val okhttp3Call = Okhttp3Call{
         callTimeout(15, TimeUnit.SECONDS)
         addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
     }
@@ -35,7 +35,7 @@ class MyHttpCall: CxHttpCall {
                 })
             }
             else -> {
-                return okHttp3Call.await(request)
+                return okhttp3Call.await(request)
             }
         }
     }

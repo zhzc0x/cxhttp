@@ -7,6 +7,7 @@ import com.zicheng.net.cxhttp.request.*
 import com.zicheng.net.cxhttp.response.result
 import com.zicheng.net.cxhttp.response.resultList
 import kotlinx.coroutines.*
+import java.io.IOException
 
 
 /**
@@ -118,8 +119,8 @@ class CxHttp private constructor(private val request: Request, private val block
             request.block()
             // Hook and Execute request
             CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
-        } catch (ex: Exception) {
-            Response(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ex), null)
+        } catch (ie: IOException) {
+            Response(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ie), null)
         }
         response.converter = respConverter
         response.request = request

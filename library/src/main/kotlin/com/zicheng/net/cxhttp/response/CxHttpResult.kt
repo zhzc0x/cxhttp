@@ -16,6 +16,10 @@ abstract class CxHttpResult<T>(private val cxCode: String,
     val success: Boolean = cxCode == CxHttpHelper.SUCCESS_CODE
 }
 
+data class HttpResult<T>(val code: String,
+                         val msg: String,
+                         val data: T?): CxHttpResult<T>(code, msg, data)
+
 @OptIn(CxHttpHelper.InternalAPI::class)
 inline fun <T, reified RESULT: CxHttpResult<T>> Response.result(): RESULT{
     return if(isSuccessful && body != null){

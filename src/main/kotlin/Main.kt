@@ -10,6 +10,7 @@ import com.zicheng.net.cxhttp.converter.JacksonConverter
 import com.zicheng.net.cxhttp.response.body
 import com.zicheng.net.cxhttp.response.bodyOrNull
 import kotlinx.coroutines.*
+import java.io.File
 
 
 const val JSON_USER_INFO = "{\"code\":200,\n" +
@@ -85,26 +86,37 @@ fun main(args: Array<String>) {
         println("resultGet3: $resultGet3")
 
         CxHttp.post(TEST_URL_USER_UPDATE){
+            //You can set params or body
             params(mapOf(
                 "name" to "zhangzicheng",
                 "age" to 32,
                 "gender" to "男",
                 "occupation" to "农民"))
-            //requestBodyConverter可单独自定义，实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()指定的全局converter
-            setBodyConverter(jacksonConverter)
+            setBody(UserInfo("zhangzicheng", 32, "男", "农民"), UserInfo::class.java)
+            //可单独设置requestBodyConverter，自定义实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()设置的全局converter
+            bodyConverter = jacksonConverter
         }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
             println("resultPost1: $resultPost1")
-        }
-        CxHttp.post(TEST_URL_USER_UPDATE){
-            setBody(UserInfo("zhangzicheng", 32, "男", "农民"), UserInfo::class.java)
-        }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost2 ->
-            println("resultPost2: $resultPost2")
         }
         CxHttp.post(TEST_URL_USER_PROJECTS){
             param("page", 1)
             param("pageSize", 2)
-        }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost3 ->
-            println("resultPost3: $resultPost3")
+        }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost2 ->
+            println("resultPost2: $resultPost2")
         }
+
+        CxHttp.post("form url"){
+            formBody {
+                append("name", "value")
+            }
+        }.await().isSuccessful
+        CxHttp.post("multipart url"){
+            multipartBody {
+                append("name", "value")
+                append("name", "filename", "filepath")
+                append("name", null, File("filepath"))
+            }
+        }.await().isSuccessful
+
     }
 }

@@ -1,7 +1,7 @@
 package com.zicheng.net.cxhttp
 
 import com.zicheng.net.cxhttp.call.CxHttpCall
-import com.zicheng.net.cxhttp.call.OkHttp3Call
+import com.zicheng.net.cxhttp.call.Okhttp3Call
 import com.zicheng.net.cxhttp.converter.CxHttpConverter
 import com.zicheng.net.cxhttp.converter.JacksonConverter
 import com.zicheng.net.cxhttp.response.Response
@@ -47,7 +47,7 @@ object CxHttpHelper {
     internal var hookResponse: HookResponseFunction = hookResponseInstance
 
     @JvmOverloads
-    fun init(scope: CoroutineScope, debugLog: Boolean, call: CxHttpCall = OkHttp3Call{
+    fun init(scope: CoroutineScope, debugLog: Boolean, call: CxHttpCall = Okhttp3Call{
         callTimeout(15, TimeUnit.SECONDS)
         if (debugLog) {
             addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))

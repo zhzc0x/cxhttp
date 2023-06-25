@@ -23,11 +23,13 @@ class Request internal constructor(val url: String, val method: String) {
         get() = _headers
     val params: Map<String, Any>?
         get() = _params
-    internal val body: Body<*>?
+    val body: Body<*>?
         get() = _body
+
     var mergeParamsToUrl = method == Method.GET.value
-    internal var bodyConverter: RequestBodyConverter = CxHttpHelper.converter
-    internal var onProgress: ((Long, Long) -> Unit)? = null
+    var bodyConverter: RequestBodyConverter = CxHttpHelper.converter
+    /** 上传进度监听 (totalLength, currentLength) -> Unit */
+    var onProgress: ((Long, Long) -> Unit)? = null
 
     fun tag(tag: Any?) {
         _tag = tag
@@ -65,9 +67,9 @@ class Request internal constructor(val url: String, val method: String) {
         _body = StringBody(body, contentType)
     }
 
-    fun <T> setBody(body: T, tClass: Class<T>, contentType: String = CxHttpHelper.CONTENT_TYPE_JSON,
+    fun <T> setBody(body: T, tType: Class<T>, contentType: String = CxHttpHelper.CONTENT_TYPE_JSON,
                     bodyConverter: RequestBodyConverter? = null){
-        _body = EntityBody(body, tClass, contentType)
+        _body = EntityBody(body, tType, contentType)
         bodyConverter?.let { this.bodyConverter = it }
     }
 
@@ -79,30 +81,12 @@ class Request internal constructor(val url: String, val method: String) {
         _body = ByteArrayBody(body, contentType)
     }
 
-    /**
-     * 设置RequestBody转换器
-     * @param bodyConverter RequestBodyConverter：可自定义RequestBody，默认使用CxHttpHelper.converter
-     *
-     * */
-    fun setBodyConverter(bodyConverter: RequestBodyConverter){
-        this.bodyConverter = bodyConverter
-    }
-
     fun formBody(block: FormBody.() -> Unit = {}){
-        FormBody(mutableListOf(), CxHttpHelper.CONTENT_TYPE_FORM).block()
+        _body = FormBody(mutableListOf(), CxHttpHelper.CONTENT_TYPE_FORM).apply(block)
     }
 
     fun multipartBody(type: String = CxHttpHelper.CONTENT_TYPE_MULTIPART_FORM, block: MultipartBody.() -> Unit){
-        MultipartBody(mutableListOf(), type).block()
-    }
-
-    /**
-     * 上传进度监听
-     * @param onProgress (Long, Long) -> Unit：totalLength, currentLength
-     *
-     * */
-    fun setOnProgressListener(onProgress: (Long, Long) -> Unit){
-        this.onProgress = onProgress
+        _body = MultipartBody(mutableListOf(), type).apply(block)
     }
 
     fun containsHeader(key: String): Boolean {

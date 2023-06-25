@@ -1,12 +1,19 @@
 package com.zicheng.net.cxhttp.request
 
 import com.zicheng.net.cxhttp.CxHttpHelper
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okio.Buffer
+import okio.BufferedSink
+import okio.ForwardingSink
+import okio.buffer
+import java.io.IOException
 
-fun Request.buildOkHttp3Request(): okhttp3.Request {
+fun Request.buildOkhttp3Request(): okhttp3.Request {
     val builder = okhttp3.Request.Builder().url(url)
     if(mergeParamsToUrl){
         builder.url(CxHttpHelper.mergeParamsToUrl(url, params))
@@ -26,7 +33,7 @@ fun Request.buildOkHttp3Request(): okhttp3.Request {
         }
         is EntityBody<*> -> {
             val entityBody = (body as EntityBody<*>)
-            bodyConverter.convert(entityBody.content, entityBody.contentClass).toRequestBody(bodyConverter.contentType.toMediaTypeOrNull())
+            bodyConverter.convert(entityBody.content, entityBody.tType).toRequestBody(bodyConverter.contentType.toMediaTypeOrNull())
         }
         is FormBody -> {
             val formBody = body as FormBody
@@ -40,7 +47,7 @@ fun Request.buildOkHttp3Request(): okhttp3.Request {
             bodyBuilder.build()
         }
         is MultipartBody -> {
-            val multipartBody = body as FormBody
+            val multipartBody = body as MultipartBody
             params?.forEach { multipartBody.content.add(StringPart(it.key, it.value.toString())) }
             val bodyBuilder = okhttp3.MultipartBody.Builder().setType(body!!.contentType.toMediaType())
             for(part in multipartBody.content){
@@ -73,7 +80,37 @@ fun Request.buildOkHttp3Request(): okhttp3.Request {
         }
     }
     if (okhttpReqBody != null && onProgress != null) {
-        okhttpReqBody = ProgressRequestBody(okhttpReqBody, onProgress!!)
+        okhttpReqBody = ProgressOkHttp3RequestBody(okhttpReqBody, onProgress!!)
     }
     return builder.method(method, okhttpReqBody).tag(tag).build()
+}
+
+internal class ProgressOkHttp3RequestBody(private val requestBody: RequestBody, private val onProgress: (Long, Long) -> Unit): RequestBody() {
+
+    @Throws(IOException::class)
+    override fun contentLength(): Long {
+        return requestBody.contentLength()
+    }
+
+    override fun contentType(): MediaType {
+        return requestBody.contentType()!!
+    }
+
+    @Throws(IOException::class)
+    override fun writeTo(sink: BufferedSink) {
+        val totalLength = contentLength()
+        var currentLength = 0L
+        val forwardingSink: ForwardingSink = object : ForwardingSink(sink) {
+            @Throws(IOException::class)
+            override fun write(source: Buffer, byteCount: Long) {
+                currentLength += byteCount
+                onProgress(totalLength, currentLength)
+                super.write(source, byteCount)
+            }
+        }
+        val buffer: BufferedSink = forwardingSink.buffer()
+        requestBody.writeTo(buffer)
+        buffer.flush()
+    }
+
 }

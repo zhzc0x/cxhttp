@@ -8,8 +8,8 @@ sealed interface PartData{
 }
 
 
-internal data class StringPart(override val name: String, override val value: String): PartData
+data class StringPart internal constructor(override val name: String, override val value: String): PartData
 
-internal data class FilePart(override val name: String, override val value: String?, val data: File, val contentType: String?): PartData
+data class FilePart internal constructor(override val name: String, override val value: String?, val data: File, val contentType: String?): PartData
 
-internal data class ByteArrayPart(override val name: String, override val value: String?, val data: ByteArray, val contentType: String?): PartData
+data class ByteArrayPart internal constructor(override val name: String, override val value: String?, val data: ByteArray, val contentType: String?): PartData

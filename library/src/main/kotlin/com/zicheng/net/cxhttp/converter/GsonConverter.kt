@@ -6,7 +6,7 @@ import com.zicheng.net.cxhttp.CxHttpHelper
 import com.zicheng.net.cxhttp.response.CxHttpResult
 import com.zicheng.net.cxhttp.response.Response
 
-class GsonConverter @JvmOverloads constructor(private var _gson: Gson? = null,
+class GsonConverter(private var _gson: Gson? = null,
                                               onConfiguration: GsonBuilder.() -> Unit = {}): CxHttpConverter {
 
     override val contentType: String = CxHttpHelper.CONTENT_TYPE_JSON
