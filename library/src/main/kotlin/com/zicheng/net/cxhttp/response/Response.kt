@@ -5,8 +5,7 @@ import com.zicheng.net.cxhttp.converter.ResponseConverter
 import com.zicheng.net.cxhttp.request.Request
 import java.io.InputStream
 
-class Response(val code: Int, val message: String, val body: Body?){
-
+data class Response(val code: Int, val message: String, val body: Body?){
 
     internal lateinit var request: Request
     internal var reRequest: Boolean = false//是否重新请求
@@ -33,15 +32,29 @@ class Response(val code: Int, val message: String, val body: Body?){
 }
 
 @OptIn(CxHttpHelper.InternalAPI::class)
-inline fun <reified T> Response.body(): T{
+inline fun <reified T> Response.bodyOrNull(): T?{
     return body(T::class.java)
 }
 
 @OptIn(CxHttpHelper.InternalAPI::class)
-fun <T> Response.body(type: Class<T>): T{
-    if(type == String::class.java || type == Int::class.java || type == Boolean::class.java || type == Double::class.java || type == Float::class.java){
-        @Suppress("UNCHECKED_CAST")
-        return body!!.string() as T
+fun <T> Response.bodyOrNull(type: Class<T>): T?{
+    return body(type)
+}
+
+@OptIn(CxHttpHelper.InternalAPI::class)
+inline fun <reified T> Response.body(): T{
+    return body(T::class.java)!!
+}
+
+@OptIn(CxHttpHelper.InternalAPI::class)
+fun <T> Response.body(type: Class<T>): T?{
+    if(body == null){
+        return null
     }
-    return converter.convert(body!!, type)
+    if(type == String::class.java || type == Int::class.java || type == Long::class.java ||
+        type == Boolean::class.java || type == Double::class.java || type == Float::class.java){
+        @Suppress("UNCHECKED_CAST")
+        return body.string() as T
+    }
+    return converter.convert(body, type)
 }

@@ -8,6 +8,7 @@ import com.zicheng.net.cxhttp.CxHttpHelper
 import com.zicheng.net.cxhttp.converter.GsonConverter
 import com.zicheng.net.cxhttp.converter.JacksonConverter
 import com.zicheng.net.cxhttp.response.body
+import com.zicheng.net.cxhttp.response.bodyOrNull
 import kotlinx.coroutines.*
 
 
@@ -67,14 +68,20 @@ fun main(args: Array<String>) {
     runBlocking {
         val job = CxHttp.get("https://www.baidu.com")
             //此处可指定协程，不指定默认使用CxHttpHelper.scope
-            .scope(this).launch{ response ->
-            println("resultGet1: ${response.body<String>()}")
+            .scope(this)
+            .launch{ response ->
+                println("response1=$response")
+                if(response.body != null){
+                    println("resultGet1: ${response.body<String>()}")
+                } else {
+                    // TODO: Can do some exception handling
+                }
         }
-        val resultGet2: String = CxHttp.get("https://www.baidu.com").await().body()
+        val resultGet2 = CxHttp.get("https://www.baidu.com").await().bodyOrNull(String::class.java)
         println("resultGet2: $resultGet2")
 
         val resultDeferred = CxHttp.get("https://www.baidu.com").async()
-        val resultGet3: String = resultDeferred.await().body()
+        val resultGet3: String? = resultDeferred.await().bodyOrNull()
         println("resultGet3: $resultGet3")
 
         CxHttp.post(TEST_URL_USER_UPDATE){
@@ -93,7 +100,6 @@ fun main(args: Array<String>) {
         }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost2 ->
             println("resultPost2: $resultPost2")
         }
-
         CxHttp.post(TEST_URL_USER_PROJECTS){
             param("page", 1)
             param("pageSize", 2)
