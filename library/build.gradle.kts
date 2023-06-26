@@ -3,7 +3,7 @@ plugins {
 }
 apply(from="${rootDir}/library/upload-archives.gradle")
 
-group = "com.github.zicheng2019"
+group = "com.zicheng.net.cxhttp"
 
 repositories {
     mavenCentral()

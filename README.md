@@ -47,7 +47,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.zicheng2019:cxhttp:1.0.0")
+    implementation("io.github.zicheng1992:cxhttp:1.1.0")
     //默认网络请求库Okhttp3Call，如果使用其它网络库可去掉
     implementation("com.squareup.okhttp3:okhttp:4.9.3")//最新版本不兼容Android4.4
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
@@ -128,7 +128,7 @@ dependencies {
 ```
 
 # License
-Copyright 2023 zicheng2019
+Copyright 2023 zicheng1992
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
