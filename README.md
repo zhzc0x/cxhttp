@@ -2,7 +2,7 @@
 
 Coroutine Extensions Http（协程扩展Http）
 
-- 支持get、post（可指定RequestBodyConverter）、postForm、postFile（可指定content-type）请求
+- 支持get、post（setBody(T，contentType，可单独指定RequestBodyConverter)、formBody、multipartBody）、delete、patch等请求
 
 - 支持自定义RequestBodyConverter和ResponseConverter，默认实现JacksonConverter
 
