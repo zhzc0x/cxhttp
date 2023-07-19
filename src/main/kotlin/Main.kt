@@ -96,7 +96,7 @@ fun main(args: Array<String>) {
             //可单独设置requestBodyConverter，自定义实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()设置的全局converter
             bodyConverter = jacksonConverter
         }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
-            println("resultPost1: $resultPost1")
+            println("resultPost1: ${resultPost1.data!!.occupation}")
         }
         CxHttp.post(TEST_URL_USER_PROJECTS){
             param("page", 1)

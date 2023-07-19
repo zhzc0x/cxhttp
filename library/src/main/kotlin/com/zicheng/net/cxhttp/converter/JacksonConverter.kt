@@ -41,14 +41,14 @@ class JacksonConverter(private var _jsonMapper: JsonMapper? = null,
         return jsonMapper.readValue(body.string(), JacksonType(tType))
     }
 
-    override fun <T, RESULT : CxHttpResult<T>> convertResult(body: Response.Body, resultType: Class<RESULT>): RESULT {
-//        val realType = ParameterizedTypeImpl(resultClass, tType)
-        return jsonMapper.readValue(body.string(), JacksonType(resultType))
+    override fun <T, RESULT : CxHttpResult<T>> convertResult(body: Response.Body, resultType: Class<RESULT>, tType: Type): RESULT {
+        val realType = ParameterizedTypeImpl(resultType, tType)
+        return jsonMapper.readValue(body.string(), JacksonType(realType))
     }
 
-    override fun <T, RESULT : CxHttpResult<List<T>>> convertResultList(body: Response.Body, resultType: Class<RESULT>): RESULT {
-//        val realType = ParameterizedTypeImpl(resultClass, ParameterizedTypeImpl(List::class.java, tType))
-        return jsonMapper.readValue(body.string(), JacksonType(resultType))
+    override fun <T, RESULT : CxHttpResult<List<T>>> convertResultList(body: Response.Body, resultType: Class<RESULT>, tType: Type): RESULT {
+        val realType = ParameterizedTypeImpl(resultType, ParameterizedTypeImpl(List::class.java, tType))
+        return jsonMapper.readValue(body.string(), JacksonType(realType))
     }
 
     override fun <T> convert(value: T, tClass: Class<out T>): ByteArray {

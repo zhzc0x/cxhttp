@@ -3,14 +3,15 @@ package com.zicheng.net.cxhttp.converter
 import com.zicheng.net.cxhttp.CxHttpHelper
 import com.zicheng.net.cxhttp.response.CxHttpResult
 import com.zicheng.net.cxhttp.response.Response
+import java.lang.reflect.Type
 
 interface ResponseConverter {
 
     fun <T> convert(body: Response.Body, tType: Class<T>): T
 
-    fun <T, RESULT: CxHttpResult<T>> convertResult(body: Response.Body, resultType: Class<RESULT>): RESULT
+    fun <T, RESULT: CxHttpResult<T>> convertResult(body: Response.Body, resultType: Class<RESULT>, tType: Type): RESULT
 
-    fun <T, RESULT: CxHttpResult<List<T>>> convertResultList(body: Response.Body, resultType: Class<RESULT>): RESULT
+    fun <T, RESULT: CxHttpResult<List<T>>> convertResultList(body: Response.Body, resultType: Class<RESULT>, tType: Type): RESULT
 
     @CxHttpHelper.InternalAPI
     fun <RESULT: CxHttpResult<*>> convertResult(code: String, msg: String, data: Any? = null, resultType: Class<RESULT>): RESULT{

@@ -21,10 +21,10 @@ data class HttpResult<T>(val code: String,
                          val data: T?): CxHttpResult<T>(code, msg, data)
 
 @OptIn(CxHttpHelper.InternalAPI::class)
-inline fun <T, reified RESULT: CxHttpResult<T>> Response.result(): RESULT{
+inline fun <reified T, reified RESULT: CxHttpResult<T>> Response.result(): RESULT{
     return if(isSuccessful && body != null){
         try {
-            converter.convertResult(body, RESULT::class.java)
+            converter.convertResult(body, RESULT::class.java, T::class.java)
         } catch (ex: Exception) {
             converter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常", resultType=RESULT::class.java)
         }
@@ -34,10 +34,10 @@ inline fun <T, reified RESULT: CxHttpResult<T>> Response.result(): RESULT{
 }
 
 @OptIn(CxHttpHelper.InternalAPI::class)
-inline fun <T, reified RESULT: CxHttpResult<List<T>>> Response.resultList(): RESULT{
+inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> Response.resultList(): RESULT{
     return if(isSuccessful && body != null){
         try {
-            converter.convertResultList(body, RESULT::class.java)
+            converter.convertResultList(body, RESULT::class.java, T::class.java)
         } catch (ex: Exception) {
             converter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常", resultType=RESULT::class.java)
         }
