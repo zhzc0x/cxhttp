@@ -30,11 +30,13 @@ class GsonConverter(private var _gson: Gson? = null,
 
     override fun <T, RESULT : CxHttpResult<T>> convertResult(body: Response.Body, resultType: Class<RESULT>, tType: Type): RESULT {
         val realType = ParameterizedTypeImpl(resultType, tType)
+        @Suppress("UNCHECKED_CAST")
         return gson.fromJson(body.string(), TypeToken.get(realType)) as RESULT
     }
 
     override fun <T, RESULT : CxHttpResult<List<T>>> convertResultList(body: Response.Body, resultType: Class<RESULT>, tType: Type): RESULT {
         val realType = ParameterizedTypeImpl(resultType, ParameterizedTypeImpl(List::class.java, tType))
+        @Suppress("UNCHECKED_CAST")
         return gson.fromJson(body.string(), TypeToken.get(realType)) as RESULT
     }
 
