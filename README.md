@@ -77,8 +77,7 @@ dependencies {
     runBlocking {
         val job = CxHttp.get("https://www.baidu.com")
             //此处可指定协程，不指定默认使用CxHttpHelper.scope
-            .scope(this)
-        	.launch{ response ->
+            .scope(this).launch{ response ->
             	f(response.body != null){
                     println("resultGet1: ${response.body<String>()}")
                 } else {
