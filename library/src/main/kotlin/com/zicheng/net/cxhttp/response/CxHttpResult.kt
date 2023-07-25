@@ -26,6 +26,7 @@ inline fun <reified T, reified RESULT: CxHttpResult<T>> Response.result(): RESUL
         try {
             converter.convertResult(body, RESULT::class.java, T::class.java)
         } catch (ex: Exception) {
+            CxHttpHelper.exToMessage(ex)
             converter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常", resultType=RESULT::class.java)
         }
     } else {
@@ -39,6 +40,7 @@ inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> Response.resultLis
         try {
             converter.convertResultList(body, RESULT::class.java, T::class.java)
         } catch (ex: Exception) {
+            CxHttpHelper.exToMessage(ex)
             converter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常", resultType=RESULT::class.java)
         }
     } else {

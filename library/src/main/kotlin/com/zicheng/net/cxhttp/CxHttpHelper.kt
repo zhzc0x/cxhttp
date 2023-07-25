@@ -83,7 +83,8 @@ object CxHttpHelper {
         return contentType.toMediaType()
     }
 
-    internal fun exToMessage(ex: Exception): String {
+    @InternalAPI
+    fun exToMessage(ex: Exception): String {
         if(debugLog){
             ex.printStackTrace()
         }
