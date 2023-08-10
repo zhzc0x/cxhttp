@@ -37,6 +37,23 @@ Coroutine Extensions Http（协程扩展Http）
 
 - 支持自定义CxHttpCall，默认实现Okhttp3Call
 
+  ```kotlin
+  interface CxHttpCall {
+      suspend fun await(request: Request): Response
+  }
+  ```
+
+- 支持okhttp3相关配置可直接通过Okhttp3Call配置，代码示例如下：
+
+  ```kotlin
+  val okhttp3Call = Okhttp3Call{
+      callTimeout(15, TimeUnit.SECONDS)
+      addInterceptor(CallServerInterceptor())
+      ......
+  }
+  CxHttpHelper.init(call=okhttp3Call)
+  ```
+
 # 示例
 
 添加gradle依赖
@@ -63,7 +80,6 @@ dependencies {
 ```kotlin
     val jacksonConverter = JacksonConverter()
     CxHttpHelper.init(scope = MainScope(), debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
-    
     CxHttpHelper.hookRequest{ request ->
         request.param("id", "123456")
         request.header("token", "1a2b3c4d5e6f")
