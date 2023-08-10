@@ -17,10 +17,12 @@ interface ResponseConverter {
     fun <RESULT: CxHttpResult<*>> convertResult(code: String, msg: String, data: Any? = null, resultType: Class<RESULT>): RESULT{
         val httpResult = try {
             val constructor = resultType.getConstructor(String::class.java, String::class.java, Any::class.java)
+            constructor.isAccessible = true
             constructor.newInstance(code, msg, data)
         } catch (_: NoSuchMethodException){
             try {
                 val constructor = resultType.getConstructor(Int::class.java, String::class.java, Any::class.java)
+                constructor.isAccessible = true
                 constructor.newInstance(code.toInt(), msg, data)
             } catch (_: NoSuchMethodException){
                 throw IllegalArgumentException("请保证resultClass(RESULT: CxHttpResult<T>)的构造器参数类型及顺序为" +
