@@ -4,19 +4,11 @@ import JSON_PROJECTS
 import JSON_USER_INFO
 import TEST_URL_USER_PROJECTS
 import TEST_URL_USER_UPDATE
-import com.zicheng.net.cxhttp.call.CxHttpCall
-import com.zicheng.net.cxhttp.call.Okhttp3Call
-import com.zicheng.net.cxhttp.response.Response
-import com.zicheng.net.cxhttp.request.Request
-import okhttp3.logging.HttpLoggingInterceptor
-import java.util.concurrent.TimeUnit
+import cxhttp.call.CxHttpCall
+import cxhttp.response.Response
+import cxhttp.request.Request
 
-class MyHttpCall: CxHttpCall {
-
-    private val okhttp3Call = Okhttp3Call{
-        callTimeout(15, TimeUnit.SECONDS)
-        addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-    }
+class MyHttpCall(private val httpCall: CxHttpCall): CxHttpCall by httpCall {
 
     override suspend fun await(request: Request): Response {
         when (request.url) {
@@ -35,7 +27,7 @@ class MyHttpCall: CxHttpCall {
                 })
             }
             else -> {
-                return okhttp3Call.await(request)
+                return httpCall.await(request)
             }
         }
     }

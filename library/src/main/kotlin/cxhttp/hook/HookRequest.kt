@@ -1,6 +1,6 @@
-package com.zicheng.net.cxhttp.hook
+package cxhttp.hook
 
-import com.zicheng.net.cxhttp.request.Request
+import cxhttp.request.Request
 
 typealias HookRequestFunction = suspend HookRequest.(Request) -> Request
 

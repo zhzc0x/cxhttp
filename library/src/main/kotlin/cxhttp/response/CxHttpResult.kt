@@ -1,6 +1,6 @@
-package com.zicheng.net.cxhttp.response
+package cxhttp.response
 
-import com.zicheng.net.cxhttp.CxHttpHelper
+import cxhttp.CxHttpHelper
 
 /**
  * CxHttp所有请求返回的结果基类，T为任意类型，默认实现 @see HttpResult

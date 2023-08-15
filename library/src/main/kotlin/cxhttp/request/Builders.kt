@@ -1,6 +1,6 @@
-package com.zicheng.net.cxhttp.request
+package cxhttp.request
 
-import com.zicheng.net.cxhttp.CxHttpHelper
+import cxhttp.CxHttpHelper
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

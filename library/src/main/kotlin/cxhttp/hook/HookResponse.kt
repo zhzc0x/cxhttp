@@ -1,7 +1,7 @@
-package com.zicheng.net.cxhttp.hook
+package cxhttp.hook
 
-import com.zicheng.net.cxhttp.response.Response
-import com.zicheng.net.cxhttp.request.Request
+import cxhttp.response.Response
+import cxhttp.request.Request
 
 typealias HookResponseFunction = suspend HookResponse.(Response) -> Response
 

@@ -1,4 +1,4 @@
-package com.zicheng.net.cxhttp.converter
+package cxhttp.converter
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.json.JsonWriteFeature
@@ -7,9 +7,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.zicheng.net.cxhttp.CxHttpHelper
-import com.zicheng.net.cxhttp.response.CxHttpResult
-import com.zicheng.net.cxhttp.response.Response
+import cxhttp.CxHttpHelper
+import cxhttp.response.CxHttpResult
+import cxhttp.response.Response
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
 import java.util.*

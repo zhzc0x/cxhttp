@@ -1,3 +1,3 @@
-package com.zicheng.net.cxhttp.converter
+package cxhttp.converter
 
 interface CxHttpConverter: RequestBodyConverter, ResponseConverter

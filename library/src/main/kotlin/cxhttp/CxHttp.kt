@@ -1,11 +1,11 @@
-package com.zicheng.net.cxhttp
+package cxhttp
 
-import com.zicheng.net.cxhttp.converter.ResponseConverter
-import com.zicheng.net.cxhttp.response.CxHttpResult
-import com.zicheng.net.cxhttp.response.Response
-import com.zicheng.net.cxhttp.request.*
-import com.zicheng.net.cxhttp.response.result
-import com.zicheng.net.cxhttp.response.resultList
+import cxhttp.converter.ResponseConverter
+import cxhttp.response.CxHttpResult
+import cxhttp.response.Response
+import cxhttp.request.Request
+import cxhttp.response.result
+import cxhttp.response.resultList
 import kotlinx.coroutines.*
 import java.io.IOException
 
@@ -18,31 +18,31 @@ class CxHttp private constructor(private val request: Request, private val block
 
     companion object{
 
-        fun get(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+        fun get(url: String, block: suspend Request.() -> Unit = {}): CxHttp {
             return request(url, Request.Method.GET.value, block)
         }
 
-        fun head(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+        fun head(url: String, block: suspend Request.() -> Unit = {}): CxHttp {
             return request(url, Request.Method.HEAD.value, block)
         }
 
-        fun post(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+        fun post(url: String, block: suspend Request.() -> Unit = {}): CxHttp {
             return request(url, Request.Method.POST.value, block)
         }
 
-        fun delete(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+        fun delete(url: String, block: suspend Request.() -> Unit = {}): CxHttp {
             return request(url, Request.Method.DELETE.value, block)
         }
 
-        fun put(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+        fun put(url: String, block: suspend Request.() -> Unit = {}): CxHttp {
             return request(url, Request.Method.PUT.value, block)
         }
 
-        fun patch(url: String, block: suspend Request.() -> Unit = {}): CxHttp{
+        fun patch(url: String, block: suspend Request.() -> Unit = {}): CxHttp {
             return request(url, Request.Method.PATCH.value, block)
         }
 
-        fun request(url: String, method: String, block: suspend Request.() -> Unit = {}): CxHttp{
+        fun request(url: String, method: String, block: suspend Request.() -> Unit = {}): CxHttp {
             return CxHttp(Request(url, method), block)
         }
 

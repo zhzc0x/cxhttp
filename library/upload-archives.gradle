@@ -22,7 +22,7 @@ publishing {
             pom {
                 name = 'cxhttp'
                 description = 'Network request framework based on kotlin coroutine and okhttp3 package'
-                url = 'https://github.com/zicheng1992/cxhttp'
+                url = 'https://github.com/zhzc0x/cxhttp'
 
                 licenses {
                     license {
@@ -32,15 +32,15 @@ publishing {
                 }
                 developers {
                     developer {
-                        id = 'zicheng1992'
+                        id = 'zhzc0x'
                         name = 'zhangzicheng'
                         email = 'zhangzicheng2016@gmail.com'
                     }
                 }
                 scm {
-                    connection = 'https://github.com/zicheng1992/cxhttp.git'
-                    developerConnection = 'https://github.com/zicheng1992/cxhttp.git'
-                    url = 'https://github.com/zicheng1992/cxhttp'
+                    connection = 'https://github.com/zhzc0x/cxhttp.git'
+                    developerConnection = 'https://github.com/zhzc0x/cxhttp.git'
+                    url = 'https://github.com/zhzc0x/cxhttp'
                 }
             }
         }

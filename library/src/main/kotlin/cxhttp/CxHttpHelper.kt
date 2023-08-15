@@ -1,12 +1,15 @@
-package com.zicheng.net.cxhttp
+package cxhttp
 
-import com.zicheng.net.cxhttp.call.CxHttpCall
-import com.zicheng.net.cxhttp.call.Okhttp3Call
-import com.zicheng.net.cxhttp.converter.CxHttpConverter
-import com.zicheng.net.cxhttp.converter.JacksonConverter
-import com.zicheng.net.cxhttp.response.Response
-import com.zicheng.net.cxhttp.hook.*
-import com.zicheng.net.cxhttp.request.Request
+import cxhttp.call.CxHttpCall
+import cxhttp.call.Okhttp3Call
+import cxhttp.converter.CxHttpConverter
+import cxhttp.converter.JacksonConverter
+import cxhttp.response.Response
+import cxhttp.request.Request
+import cxhttp.hook.HookRequest
+import cxhttp.hook.HookRequestFunction
+import cxhttp.hook.HookResponse
+import cxhttp.hook.HookResponseFunction
 import kotlinx.coroutines.CoroutineScope
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
@@ -52,11 +55,12 @@ object CxHttpHelper {
         if (debugLog) {
             addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
         }
-    }, converter: CxHttpConverter = JacksonConverter()){
-        this.scope = scope
-        this.debugLog = debugLog
-        this.call = call
-        this.converter = converter
+    }, converter: CxHttpConverter = JacksonConverter()
+    ){
+        CxHttpHelper.scope = scope
+        CxHttpHelper.debugLog = debugLog
+        CxHttpHelper.call = call
+        CxHttpHelper.converter = converter
     }
 
     fun hookRequest(hook: HookRequestFunction){

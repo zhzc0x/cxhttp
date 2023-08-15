@@ -1,7 +1,7 @@
-package com.zicheng.net.cxhttp.request
+package cxhttp.request
 
-import com.zicheng.net.cxhttp.CxHttpHelper
-import com.zicheng.net.cxhttp.converter.RequestBodyConverter
+import cxhttp.CxHttpHelper
+import cxhttp.converter.RequestBodyConverter
 import java.io.File
 import java.lang.IllegalArgumentException
 

@@ -3,14 +3,16 @@ import com.zicheng.demo.bean.MyHttpResult
 import com.zicheng.demo.bean.ProjectInfo
 import com.zicheng.demo.bean.UserInfo
 import com.zicheng.demo.cxhttp.MyHttpCall
-import com.zicheng.net.cxhttp.CxHttp
-import com.zicheng.net.cxhttp.CxHttpHelper
-import com.zicheng.net.cxhttp.converter.GsonConverter
-import com.zicheng.net.cxhttp.converter.JacksonConverter
-import com.zicheng.net.cxhttp.response.body
-import com.zicheng.net.cxhttp.response.bodyOrNull
+import cxhttp.CxHttp
+import cxhttp.CxHttpHelper
+import cxhttp.call.Okhttp3Call
+import cxhttp.converter.JacksonConverter
+import cxhttp.response.body
+import cxhttp.response.bodyOrNull
 import kotlinx.coroutines.*
+import okhttp3.logging.HttpLoggingInterceptor
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 
 const val JSON_USER_INFO = "{\"code\":200,\n" +
@@ -52,8 +54,12 @@ const val TEST_URL_USER_UPDATE = "test://www.******.com/user/update"
 const val TEST_URL_USER_PROJECTS = "test://www.******.com/user/projects"
 
 fun main(args: Array<String>) {
+    val okhttp3Call = Okhttp3Call{
+        callTimeout(15, TimeUnit.SECONDS)
+        addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+    }
     val jacksonConverter = JacksonConverter()
-    CxHttpHelper.init(scope = MainScope(), debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
+    CxHttpHelper.init(scope=MainScope(), debugLog=true, call=MyHttpCall(okhttp3Call), converter=jacksonConverter)
     CxHttpHelper.hookRequest { request ->
         //此处可添加一些公共参数和头信息
         request.param("id", "123456")

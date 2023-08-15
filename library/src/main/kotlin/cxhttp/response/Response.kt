@@ -1,8 +1,8 @@
-package com.zicheng.net.cxhttp.response
+package cxhttp.response
 
-import com.zicheng.net.cxhttp.CxHttpHelper
-import com.zicheng.net.cxhttp.converter.ResponseConverter
-import com.zicheng.net.cxhttp.request.Request
+import cxhttp.CxHttpHelper
+import cxhttp.converter.ResponseConverter
+import cxhttp.request.Request
 import java.io.InputStream
 
 data class Response(val code: Int, val message: String, val body: Body?){

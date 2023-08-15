@@ -1,8 +1,8 @@
-package com.zicheng.net.cxhttp.call
+package cxhttp.call
 
-import com.zicheng.net.cxhttp.response.Response
-import com.zicheng.net.cxhttp.request.Request
-import com.zicheng.net.cxhttp.request.buildOkhttp3Request
+import cxhttp.response.Response
+import cxhttp.request.Request
+import cxhttp.request.buildOkhttp3Request
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.Call
 import okhttp3.Callback

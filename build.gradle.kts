@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "com.zicheng.demo"
+group = "com.zhzc0x.demo"
 version = "1.0-SNAPSHOT"
 
 repositories {

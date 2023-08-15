@@ -1,4 +1,4 @@
-package com.zicheng.net.cxhttp.request
+package cxhttp.request
 
 import java.io.File
 
@@ -11,11 +11,14 @@ class StringBody internal constructor(override val content: String, override val
 
 class FileBody internal constructor(override val content: File, override val contentType: String): Body<File>
 
-class ByteArrayBody internal constructor(override val content: ByteArray, override val contentType: String): Body<ByteArray>
+class ByteArrayBody internal constructor(override val content: ByteArray, override val contentType: String):
+    Body<ByteArray>
 
-class EntityBody<T> internal constructor(override val content: T, val tType: Class<T>, override val contentType: String): Body<T>
+class EntityBody<T> internal constructor(override val content: T, val tType: Class<T>, override val contentType: String):
+    Body<T>
 
-class FormBody internal constructor(override val content: MutableList<PartData>, override val contentType: String): Body<List<PartData>>{
+class FormBody internal constructor(override val content: MutableList<PartData>, override val contentType: String):
+    Body<List<PartData>> {
 
     var encoded = false
 
@@ -31,7 +34,8 @@ class FormBody internal constructor(override val content: MutableList<PartData>,
 
 }
 
-class MultipartBody internal constructor (override val content: MutableList<PartData>, override val contentType: String): Body<List<PartData>>{
+class MultipartBody internal constructor (override val content: MutableList<PartData>, override val contentType: String):
+    Body<List<PartData>> {
 
     fun append(name: String, value: String) {
         content += StringPart(name, value)

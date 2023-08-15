@@ -1,11 +1,11 @@
-package com.zicheng.net.cxhttp.converter
+package cxhttp.converter
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import com.zicheng.net.cxhttp.CxHttpHelper
-import com.zicheng.net.cxhttp.response.CxHttpResult
-import com.zicheng.net.cxhttp.response.Response
+import cxhttp.CxHttpHelper
+import cxhttp.response.CxHttpResult
+import cxhttp.response.Response
 import java.lang.reflect.Type
 
 class GsonConverter(private var _gson: Gson? = null,
