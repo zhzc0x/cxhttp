@@ -1,4 +1,4 @@
-package com.zicheng.demo.bean
+package com.zhzc0x.cxhttp.demo.bean
 
 data class ProjectInfo(val name: String,
                        val url: String,

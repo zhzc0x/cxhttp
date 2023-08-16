@@ -1,4 +1,4 @@
-package com.zicheng.demo.bean
+package com.zhzc0x.cxhttp.demo.bean
 
 import cxhttp.response.CxHttpResult
 

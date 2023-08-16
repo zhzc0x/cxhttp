@@ -1,8 +1,8 @@
 
-import com.zicheng.demo.bean.MyHttpResult
-import com.zicheng.demo.bean.ProjectInfo
-import com.zicheng.demo.bean.UserInfo
-import com.zicheng.demo.cxhttp.MyHttpCall
+import com.zhzc0x.cxhttp.demo.bean.MyHttpResult
+import com.zhzc0x.cxhttp.demo.bean.ProjectInfo
+import com.zhzc0x.cxhttp.demo.bean.UserInfo
+import com.zhzc0x.cxhttp.demo.MyHttpCall
 import cxhttp.CxHttp
 import cxhttp.CxHttpHelper
 import cxhttp.call.Okhttp3Call
@@ -59,7 +59,7 @@ fun main(args: Array<String>) {
         addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
     }
     val jacksonConverter = JacksonConverter()
-    CxHttpHelper.init(scope=MainScope(), debugLog=true, call=MyHttpCall(okhttp3Call), converter=jacksonConverter)
+    CxHttpHelper.init(scope=MainScope(), debugLog=true, call= MyHttpCall(okhttp3Call), converter=jacksonConverter)
     CxHttpHelper.hookRequest { request ->
         //此处可添加一些公共参数和头信息
         request.param("id", "123456")
