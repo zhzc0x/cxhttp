@@ -64,7 +64,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.zicheng1992:cxhttp:1.1.2")
+    implementation("com.zhzc0x.cxhttp:cxhttp:1.2.1")
     //默认网络请求库Okhttp3Call，如果使用其它网络库可去掉
     implementation("com.squareup.okhttp3:okhttp:4.9.3")//最新版本不兼容Android4.4
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
@@ -78,8 +78,12 @@ dependencies {
 代码调用
 
 ```kotlin
-    val jacksonConverter = JacksonConverter()
-    CxHttpHelper.init(scope = MainScope(), debugLog = true, call = MyHttpCall(), converter = jacksonConverter)
+	val okhttp3Call = Okhttp3Call{
+        callTimeout(15, TimeUnit.SECONDS)
+        addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+    }    
+	val jacksonConverter = JacksonConverter()
+    CxHttpHelper.init(scope=MainScope(), debugLog=true, call=MyHttpCall(okhttp3Call), converter=jacksonConverter)
     CxHttpHelper.hookRequest{ request ->
         request.param("id", "123456")
         request.header("token", "1a2b3c4d5e6f")
@@ -143,7 +147,7 @@ dependencies {
 ```
 
 # License
-Copyright 2023 zicheng1992
+Copyright 2023 zhzc0x
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
