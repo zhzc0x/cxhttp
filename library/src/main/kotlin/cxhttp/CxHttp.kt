@@ -7,6 +7,7 @@ import cxhttp.request.Request
 import cxhttp.response.result
 import cxhttp.response.resultList
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import java.io.IOException
 
 
@@ -14,7 +15,7 @@ import java.io.IOException
  * Coroutine Extensions Http（协程扩展Http）
  *
  * */
-class CxHttp private constructor(private val request: Request, private val block: suspend Request.() -> Unit) {
+class CxHttp private constructor(internal val request: Request, private val block: suspend Request.() -> Unit) {
 
     companion object{
 
@@ -46,12 +47,18 @@ class CxHttp private constructor(private val request: Request, private val block
             return CxHttp(Request(url, method), block)
         }
 
+        fun request(request: Request): CxHttp{
+            return CxHttp(request){}
+        }
+
     }
 
     @CxHttpHelper.InternalAPI
     var scope: CoroutineScope = CxHttpHelper.scope
-
-    private var respConverter: ResponseConverter = CxHttpHelper.converter
+        private set
+    @CxHttpHelper.InternalAPI
+    var respConverter: ResponseConverter = CxHttpHelper.converter
+        private set
 
     @OptIn(CxHttpHelper.InternalAPI::class)
     fun scope(scope: CoroutineScope) = apply {
@@ -62,6 +69,7 @@ class CxHttp private constructor(private val request: Request, private val block
      * 设置ResponseConverter，自定义转换Response to CxHttpResult，默认使用CxHttpHelper.converter
      *
      * */
+    @OptIn(CxHttpHelper.InternalAPI::class)
     fun respConverter(respConverter: ResponseConverter) = apply {
         this.respConverter = respConverter
     }
@@ -113,20 +121,39 @@ class CxHttp private constructor(private val request: Request, private val block
         awaitImpl().resultList<T, RESULT>()
     }
 
+    @OptIn(CxHttpHelper.InternalAPI::class)
+    suspend fun asFlow(): Flow<Response> = flow {
+        emit(awaitImpl())
+    }.flowOn(Dispatchers.IO)
+
+    @OptIn(CxHttpHelper.InternalAPI::class)
+    suspend inline fun <reified T, reified RESULT: CxHttpResult<T>> resultAsFlow(): Flow<RESULT> = flow{
+        emit(awaitImpl().result<T, RESULT>())
+    }.flowOn(Dispatchers.IO)
+
+    @OptIn(CxHttpHelper.InternalAPI::class)
+    suspend inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> resultListAsFlow(): Flow<RESULT> = flow{
+        emit(awaitImpl().resultList<T, RESULT>())
+    }.flowOn(Dispatchers.IO)
+
     @CxHttpHelper.InternalAPI
     suspend fun awaitImpl(): Response {
         var response = try {
-            request.block()
+            if(!request.retry){//避免重试时多次调用
+                request.block()
+            }
             // Hook and Execute request
-            CxHttpHelper.call.await(CxHttpHelper.applyHookRequest(request))
+            request.let {
+                CxHttpHelper.applyHookRequest(it)
+                CxHttpHelper.call.await(it)
+            }
         } catch (ie: IOException) {
             Response(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ie), null)
         }
-        response.converter = respConverter
-        response.request = request
+        response.client = this
         response = CxHttpHelper.applyHookResponse(response)
-        if(response.reRequest){
-            return await()
+        if(response.retry){
+            return awaitImpl()
         }
         return response
     }
