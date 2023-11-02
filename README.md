@@ -75,7 +75,7 @@ dependencies {
 }
 ```
 
-初始化
+初始化全局配置
 
 ```kotlin
 	val okhttp3Call = Okhttp3Call{
