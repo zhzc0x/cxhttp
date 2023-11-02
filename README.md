@@ -1,6 +1,6 @@
 # cxhttp
 
-Coroutine Extensions Http（协程扩展Http）
+Coroutine Extensions Http（协程扩展Http框架）
 
 - 支持get、post（setBody(T，contentType，可单独指定RequestBodyConverter)、formBody、multipartBody）、delete、patch等请求
 
@@ -33,7 +33,7 @@ Coroutine Extensions Http（协程扩展Http）
   abstract class CxHttpResult<T>(internal val cxCode: String, internal val cxMsg: String, internal val cxData: T?)
   ```
 
-- 支持hookRequest（添加公共头信息、参数等）和hookResponse（预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等）功能
+- 支持HookRequest（添加公共头信息、参数等）和HookResponse、HookResult（预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等）功能
 
 - 支持自定义CxHttpCall，默认实现Okhttp3Call
 
@@ -64,7 +64,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.zhzc0x.cxhttp:cxhttp:1.2.1")
+    implementation("com.zhzc0x.cxhttp:cxhttp:1.2.2")
     //默认网络请求库Okhttp3Call，如果使用其它网络库可去掉
     implementation("com.squareup.okhttp3:okhttp:4.9.3")//最新版本不兼容Android4.4
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
@@ -75,7 +75,7 @@ dependencies {
 }
 ```
 
-代码调用
+初始化
 
 ```kotlin
 	val okhttp3Call = Okhttp3Call{
@@ -84,65 +84,104 @@ dependencies {
     }    
 	val jacksonConverter = JacksonConverter()
     CxHttpHelper.init(scope=MainScope(), debugLog=true, call=MyHttpCall(okhttp3Call), converter=jacksonConverter)
-    CxHttpHelper.hookRequest{ request ->
-        request.param("id", "123456")
-        request.header("token", "1a2b3c4d5e6f")
-        request
+```
+
+GET请求
+
+```kotlin
+	val job = CxHttp.get("https://www.baidu.com")
+         //此处可指定协程，不指定默认使用CxHttpHelper.scope
+        .scope(this).launch{ response ->
+            if(response.body != null){
+                println("resultGet1: ${response.body<String>()}")
+            } else {
+                // TODO: Can do some exception handling
+            }	
+        }
+    val resultGet2 = CxHttp.get("https://www.baidu.com").await().bodyOrNull(String::class.java)
+    println("resultGet2: $resultGet2")
+
+    val resultDeferred = CxHttp.get("https://www.baidu.com").async()
+    val resultGet3: String? = resultDeferred.await().bodyOrNull()
+    println("resultGet3: $resultGet3")
+```
+
+POST请求
+
+```kotlin
+	CxHttp.post(TEST_URL_USER_UPDATE){
+        //You can set params or body
+        params(mapOf(
+            "name" to "zhangzicheng",
+            "age" to 32,
+            "gender" to "男",
+            "occupation" to "农民"))
+        setBody(UserInfo("zhangzicheng", 32, "男", "农民"), UserInfo::class.java)
+        //可单独设置requestBodyConverter，自定义实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()设置的全局converter
+        bodyConverter = jacksonConverter
+    }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
+        println("resultPost1: $resultPost1")
     }
-    CxHttpHelper.hookResponse{ response ->
-        response.request
-        response.setReRequest(false)//设置是否重新请求，默认false
+    CxHttp.post(TEST_URL_USER_PROJECTS){
+        param("page", 1)
+        param("pageSize", 2)
+    }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost2 ->
+        println("resultPost2: $resultPost2")
+    }
+```
+
+POST form、multipart
+
+```kotlin
+	CxHttp.post("form url"){
+        formBody {
+            append("name", "value")
+        }
+    }.await().isSuccessful
+    CxHttp.post("multipart url"){
+        multipartBody {
+            append("name", "value")
+            append("name", "filename", "filepath")
+            append("name", null, File("filepath"))
+        }
+    }.await().isSuccessful
+```
+
+HookRequest
+
+```kotlin
+	CxHttpHelper.hookRequest { request ->
+        request.header("token", tokenInfo?.accessToken ?: "")
+        request.param("id", "123456")
+    }
+```
+
+HookResponse
+
+```kotlin
+	CxHttpHelper.hookResponse { response ->
+        if(response.code == 401){
+            println("hookResponse： token失效，准备刷新并重试")
+            tokenInfo = refreshToken()
+            response.setReCall()//设置重新请求
+        }
         response
     }
-    runBlocking {
-        val job = CxHttp.get("https://www.baidu.com")
-            //此处可指定协程，不指定默认使用CxHttpHelper.scope
-            .scope(this).launch{ response ->
-            	f(response.body != null){
-                    println("resultGet1: ${response.body<String>()}")
-                } else {
-                    // TODO: Can do some exception handling
-                }
-        }
-        val resultGet2 = CxHttp.get("https://www.baidu.com").await().bodyOrNull(String::class.java)
-        println("resultGet2: $resultGet2")
+```
 
-        val resultDeferred = CxHttp.get("https://www.baidu.com").async()
-        val resultGet3: String? = resultDeferred.await().bodyOrNull()
-        println("resultGet3: $resultGet3")
+### 高级用法
 
-        CxHttp.post(TEST_URL_USER_UPDATE){
-            //You can set params or body
-            params(mapOf(
-                "name" to "zhangzicheng",
-                "age" to 32,
-                "gender" to "男",
-                "occupation" to "农民"))
-            setBody(UserInfo("zhangzicheng", 32, "男", "农民"), UserInfo::class.java)
-            //可单独设置requestBodyConverter，自定义实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()设置的全局converter
-            bodyConverter = jacksonConverter
-        }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
-            println("resultPost1: $resultPost1")
-        }
-        CxHttp.post(TEST_URL_USER_PROJECTS){
-            param("page", 1)
-            param("pageSize", 2)
-        }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost2 ->
-            println("resultPost2: $resultPost2")
-        }
+HookResult（Hook统一请求结果CxHttpResult<*>）
 
-        CxHttp.post("form url"){
-            formBody {
-                append("name", "value")
-            }
-        }.await().isSuccessful
-        CxHttp.post("multipart url"){
-            multipartBody {
-                append("name", "value")
-                append("name", "filename", "filepath")
-                append("name", null, File("filepath"))
-            }
-        }.await().isSuccessful
+```kotlin
+	CxHttpHelper.hookResult { result: CxHttpResult<*> ->
+        result as MyHttpResult
+        if(result.code == 401){
+            println("hookResult： token失效，准备刷新并重试")
+            tokenInfo = refreshToken()
+            result.setReCall()//设置重新请求
+        }
+        result
     }
 ```
 

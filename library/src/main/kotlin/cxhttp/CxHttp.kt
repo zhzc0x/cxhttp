@@ -139,7 +139,7 @@ class CxHttp private constructor(internal val request: Request, private val bloc
     @CxHttpHelper.InternalAPI
     suspend fun awaitImpl(): Response {
         var response = try {
-            if(!request.retry){//避免重试时多次调用
+            if(!request.reCall){//避免重新请求时多次调用
                 request.block()
             }
             // Hook and Execute request
@@ -152,7 +152,7 @@ class CxHttp private constructor(internal val request: Request, private val bloc
         }
         response.client = this
         response = CxHttpHelper.applyHookResponse(response)
-        if(response.retry){
+        if(response.reCall){
             return awaitImpl()
         }
         return response

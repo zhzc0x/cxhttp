@@ -3,10 +3,12 @@ import com.zhzc0x.cxhttp.demo.bean.MyHttpResult
 import com.zhzc0x.cxhttp.demo.bean.ProjectInfo
 import com.zhzc0x.cxhttp.demo.bean.UserInfo
 import com.zhzc0x.cxhttp.demo.MyHttpCall
+import com.zhzc0x.cxhttp.demo.bean.TokenInfo
 import cxhttp.CxHttp
 import cxhttp.CxHttpHelper
 import cxhttp.call.Okhttp3Call
 import cxhttp.converter.JacksonConverter
+import cxhttp.response.CxHttpResult
 import cxhttp.response.body
 import cxhttp.response.bodyOrNull
 import kotlinx.coroutines.*
@@ -49,9 +51,20 @@ const val JSON_PROJECTS = "{\n" +
         "        }\n" +
         "    ]\n" +
         "}"
+const val JSON_TOKEN_INFO = "{\"code\":200,\n" +
+        "\"errorMsg\":\"请求成功\",\n" +
+        "\"data\":{\n" +
+        "\"accessToken\":\"asd2fasd1sgsa4gasfas\",\n" +
+        "\"refreshToken\":\"f4trgegrfg5wrqwsdfa0\",\n" +
+        "\"age\":\"32\",\n" +
+        "\"gender\":\"男\",\n" +
+        "\"occupation\":\"搬砖\"\n" +
+        "}\n" +
+        "}"
 
 const val TEST_URL_USER_UPDATE = "test://www.******.com/user/update"
 const val TEST_URL_USER_PROJECTS = "test://www.******.com/user/projects"
+const val TEST_URL_TOKEN_REFRESH = "test://www.******.com/token/refresh"
 
 fun main(args: Array<String>) {
     val okhttp3Call = Okhttp3Call{
@@ -60,17 +73,29 @@ fun main(args: Array<String>) {
     }
     val jacksonConverter = JacksonConverter()
     CxHttpHelper.init(scope=MainScope(), debugLog=true, call= MyHttpCall(okhttp3Call), converter=jacksonConverter)
+    var tokenInfo: TokenInfo? = null
+    //hookRequest可以添加一些公共参数和头信息
     CxHttpHelper.hookRequest { request ->
-        //此处可添加一些公共参数和头信息
+        request.header("token", tokenInfo?.accessToken ?: "")
         request.param("id", "123456")
-        request.header("token", "1a2b3c4d5e6f")
-        request
     }
+    //hookResponse可以预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等
     CxHttpHelper.hookResponse { response ->
-        //此处可以预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等
-        response.request
-        response.setReRequest(false)//设置是否重新请求，默认false
+        if(response.code == 401){
+            println("hookResponse： token失效，准备刷新并重试")
+            tokenInfo = refreshToken()
+            response.setReCall()//设置重新请求
+        }
         response
+    }
+    CxHttpHelper.hookResult { result: CxHttpResult<*> ->
+        result as MyHttpResult
+        if(result.code == 401){
+            println("hookResult： token失效，准备刷新并重试")
+            tokenInfo = refreshToken()
+            result.setReCall()//设置重新请求
+        }
+        result
     }
     runBlocking {
         val job = CxHttp.get("https://www.baidu.com")
@@ -84,12 +109,17 @@ fun main(args: Array<String>) {
                     // TODO: Can do some exception handling
                 }
         }
+        job.join()
         val resultGet2 = CxHttp.get("https://www.baidu.com").await().bodyOrNull(String::class.java)
         println("resultGet2: $resultGet2")
 
         val resultDeferred = CxHttp.get("https://www.baidu.com").async()
         val resultGet3: String? = resultDeferred.await().bodyOrNull()
         println("resultGet3: $resultGet3")
+
+        CxHttp.get(TEST_URL_USER_PROJECTS).resultListAsFlow<ProjectInfo, MyHttpResult<List<ProjectInfo>>>().collect{
+            println("resultListAsFlow: ${it.data}")
+        }
 
         CxHttp.post(TEST_URL_USER_UPDATE){
             //You can set params or body
@@ -125,4 +155,9 @@ fun main(args: Array<String>) {
         }.await().isSuccessful
 
     }
+}
+
+private suspend fun refreshToken(): TokenInfo?{
+    val tokenInfoResult: MyHttpResult<TokenInfo> = CxHttp.post(TEST_URL_TOKEN_REFRESH).awaitResult()
+    return tokenInfoResult.data
 }

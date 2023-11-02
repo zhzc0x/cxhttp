@@ -4,12 +4,10 @@ import cxhttp.call.CxHttpCall
 import cxhttp.call.Okhttp3Call
 import cxhttp.converter.CxHttpConverter
 import cxhttp.converter.JacksonConverter
+import cxhttp.hook.*
 import cxhttp.response.Response
 import cxhttp.request.Request
-import cxhttp.hook.HookRequest
-import cxhttp.hook.HookRequestFunction
-import cxhttp.hook.HookResponse
-import cxhttp.hook.HookResponseFunction
+import cxhttp.response.CxHttpResult
 import kotlinx.coroutines.CoroutineScope
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
@@ -44,10 +42,13 @@ object CxHttpHelper {
     internal lateinit var call: CxHttpCall
     internal lateinit var converter: CxHttpConverter
     internal var debugLog = false
-    private val hookRequestInstance = HookRequest()
-    private val hookResponseInstance = HookResponse()
-    internal var hookRequest: HookRequestFunction = hookRequestInstance
-    internal var hookResponse: HookResponseFunction = hookResponseInstance
+    internal var hookRequest: HookRequest = HookInstance
+    internal var hookResponse: suspend HookResponse.(Response) -> Response = {
+        it
+    }
+    internal var hookResult: suspend HookResult.(CxHttpResult<*>) -> CxHttpResult<*> = {
+        it
+    }
 
     @JvmOverloads
     fun init(scope: CoroutineScope, debugLog: Boolean, call: CxHttpCall = Okhttp3Call{
@@ -57,26 +58,35 @@ object CxHttpHelper {
         }
     }, converter: CxHttpConverter = JacksonConverter()
     ){
-        CxHttpHelper.scope = scope
-        CxHttpHelper.debugLog = debugLog
-        CxHttpHelper.call = call
-        CxHttpHelper.converter = converter
+        this.scope = scope
+        this.debugLog = debugLog
+        this.call = call
+        this.converter = converter
     }
 
-    fun hookRequest(hook: HookRequestFunction){
-        hookRequest = hook
+    fun hookRequest(hookRequest: HookRequest){
+        this.hookRequest = hookRequest
     }
 
-    fun hookResponse(hook: HookResponseFunction){
-        hookResponse = hook
+    fun hookResponse(hookResponse: suspend HookResponse.(Response) -> Response){
+        this.hookResponse = hookResponse
     }
 
-    internal suspend inline fun applyHookRequest(request: Request): Request {
-        return hookRequestInstance.hookRequest(request)
+    fun hookResult(hookResult: suspend HookResult.(CxHttpResult<*>) -> CxHttpResult<*>){
+        this.hookResult = hookResult
+    }
+
+    internal suspend inline fun applyHookRequest(request: Request) {
+        hookRequest.hook(request)
     }
 
     internal suspend inline fun applyHookResponse(response: Response): Response {
-        return hookResponseInstance.hookResponse(response)
+        return HookInstance.hookResponse(response)
+    }
+
+    @InternalAPI
+    suspend fun applyHookResult(result: CxHttpResult<*>): CxHttpResult<*> {
+        return HookInstance.hookResult(result)
     }
 
     internal fun getMediaType(fName: String): MediaType {

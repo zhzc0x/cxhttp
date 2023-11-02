@@ -12,38 +12,11 @@ import cxhttp.CxHttpHelper
 abstract class CxHttpResult<T>(private val cxCode: String,
                                private val cxMsg: String,
                                private val cxData: T?) {
-
+    @CxHttpHelper.InternalAPI
+    lateinit var response: Response
     val success: Boolean = cxCode == CxHttpHelper.SUCCESS_CODE
 }
 
 data class HttpResult<T>(val code: String,
                          val msg: String,
                          val data: T?): CxHttpResult<T>(code, msg, data)
-
-@OptIn(CxHttpHelper.InternalAPI::class)
-inline fun <reified T, reified RESULT: CxHttpResult<T>> Response.result(): RESULT{
-    return if(isSuccessful && body != null){
-        try {
-            converter.convertResult(body, RESULT::class.java, T::class.java)
-        } catch (ex: Exception) {
-            CxHttpHelper.exToMessage(ex)
-            converter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常", resultType=RESULT::class.java)
-        }
-    } else {
-        converter.convertResult(code.toString(), message, resultType=RESULT::class.java)
-    }
-}
-
-@OptIn(CxHttpHelper.InternalAPI::class)
-inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> Response.resultList(): RESULT{
-    return if(isSuccessful && body != null){
-        try {
-            converter.convertResultList(body, RESULT::class.java, T::class.java)
-        } catch (ex: Exception) {
-            CxHttpHelper.exToMessage(ex)
-            converter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常", resultType=RESULT::class.java)
-        }
-    } else {
-        converter.convertResult(code.toString(), message, resultType=RESULT::class.java)
-    }
-}

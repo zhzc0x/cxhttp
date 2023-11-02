@@ -1,25 +1,22 @@
 package cxhttp.hook
 
-import cxhttp.response.Response
+import cxhttp.CxHttpHelper
 import cxhttp.request.Request
-
-typealias HookResponseFunction = suspend HookResponse.(Response) -> Response
+import cxhttp.response.Response
 
 /**
  * 预处理结果：可以根据状态码增加一些操作，比如token失效自动刷新并重试功能
  *
  * */
-class HookResponse internal constructor(): HookResponseFunction {
+interface HookResponse{
 
+    @OptIn(CxHttpHelper.InternalAPI::class)
     val Response.request: Request
-        get() = this.request
+        get() = client.request
 
-    fun Response.setReRequest(value: Boolean){
-        reRequest = value
-    }
-
-    override suspend fun invoke(hook: HookResponse, response: Response): Response {
-        return response
+    @OptIn(CxHttpHelper.InternalAPI::class)
+    fun Response.setReCall(){
+        this.reCall = true
     }
 
 }

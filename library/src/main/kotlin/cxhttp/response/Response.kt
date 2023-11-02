@@ -1,16 +1,19 @@
 package cxhttp.response
 
+import cxhttp.CxHttp
 import cxhttp.CxHttpHelper
-import cxhttp.converter.ResponseConverter
-import cxhttp.request.Request
 import java.io.InputStream
 
 data class Response(val code: Int, val message: String, val body: Body?){
 
-    internal lateinit var request: Request
-    internal var reRequest: Boolean = false//是否重新请求
     @CxHttpHelper.InternalAPI
-    lateinit var converter: ResponseConverter
+    lateinit var client: CxHttp
+    @CxHttpHelper.InternalAPI
+    var reCall: Boolean = false//是否重新请求
+        internal set(value) {
+            field = value
+            client.request.reCall = field
+        }
 
     val isSuccessful: Boolean
         get() = code in 200..299
@@ -54,12 +57,64 @@ fun <T> Response.bodyOrNull(type: Class<T>): T?{
             @Suppress("UNCHECKED_CAST")
             body.string() as T
         } else {
-            converter.convert(body, type)
+            client.respConverter.convert(body, type)
         }
     } catch (ex: Exception){
         if(CxHttpHelper.debugLog){
             ex.printStackTrace()
         }
         null
+    }
+}
+
+@OptIn(CxHttpHelper.InternalAPI::class)
+suspend inline fun <reified T, reified RESULT: CxHttpResult<T>> Response.result(): RESULT{
+    var result = convertResult<T, RESULT>(this)
+    result.response = this
+    result = CxHttpHelper.applyHookResult(result) as RESULT
+    if(result.response.reCall){
+        val newResponse = client.awaitImpl()
+        return convertResult<T, RESULT>(newResponse)
+    }
+    return result
+}
+
+@CxHttpHelper.InternalAPI
+inline fun <reified T, reified RESULT: CxHttpResult<T>> convertResult(response: Response): RESULT{
+    return if(response.isSuccessful && response.body != null){
+        try {
+            response.client.respConverter.convertResult(response.body, RESULT::class.java, T::class.java)
+        } catch (ex: Exception) {
+            CxHttpHelper.exToMessage(ex)
+            response.client.respConverter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常", resultType=RESULT::class.java)
+        }
+    } else {
+        response.client.respConverter.convertResult(response.code.toString(), response.message, resultType=RESULT::class.java)
+    }
+}
+
+@OptIn(CxHttpHelper.InternalAPI::class)
+suspend inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> Response.resultList(): RESULT{
+    var result = convertResultList<T, RESULT>(this)
+    result.response = this
+    result = CxHttpHelper.applyHookResult(result) as RESULT
+    if(result.response.reCall){
+        val newResponse = client.awaitImpl()
+        return convertResultList<T, RESULT>(newResponse)
+    }
+    return result
+}
+
+@CxHttpHelper.InternalAPI
+inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> convertResultList(response: Response): RESULT{
+    return if(response.isSuccessful && response.body != null){
+        try {
+            response.client.respConverter.convertResultList(response.body, RESULT::class.java, T::class.java)
+        } catch (ex: Exception) {
+            CxHttpHelper.exToMessage(ex)
+            response.client.respConverter.convertResult(CxHttpHelper.FAILURE_CODE.toString(), "数据解析异常", resultType=RESULT::class.java)
+        }
+    } else {
+        response.client.respConverter.convertResult(response.code.toString(), response.message, resultType=RESULT::class.java)
     }
 }

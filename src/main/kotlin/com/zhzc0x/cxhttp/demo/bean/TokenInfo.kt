@@ -1,4 +1,3 @@
 package com.zhzc0x.cxhttp.demo.bean
 
-class TokenInfo {
-}
+data class TokenInfo(val accessToken: String, val refreshToken: String)

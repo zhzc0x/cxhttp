@@ -31,6 +31,8 @@ class Request internal constructor(val url: String, val method: String) {
     /** 上传进度监听 (totalLength, currentLength) -> Unit */
     var onProgress: ((Long, Long) -> Unit)? = null
 
+    internal var reCall = false
+
     fun tag(tag: Any?) {
         _tag = tag
     }
