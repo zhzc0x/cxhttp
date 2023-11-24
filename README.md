@@ -78,7 +78,7 @@ dependencies {
 初始化全局配置
 
 ```kotlin
-	val okhttp3Call = Okhttp3Call{
+    val okhttp3Call = Okhttp3Call{
         callTimeout(15, TimeUnit.SECONDS)
         addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
     }    
@@ -89,7 +89,7 @@ dependencies {
 GET请求
 
 ```kotlin
-	val job = CxHttp.get("https://www.baidu.com")
+    val job = CxHttp.get("https://www.baidu.com")
          //此处可指定协程，不指定默认使用CxHttpHelper.scope
         .scope(this).launch{ response ->
             if(response.body != null){
@@ -109,7 +109,7 @@ GET请求
 POST请求
 
 ```kotlin
-	CxHttp.post(TEST_URL_USER_UPDATE){
+    CxHttp.post(TEST_URL_USER_UPDATE){
         //You can set params or body
         params(mapOf(
             "name" to "zhangzicheng",
@@ -130,10 +130,22 @@ POST请求
     }
 ```
 
+POST文件
+
+```kotlin
+    CxHttp.post("Upload url"){
+        delay(3000)
+        setBody(File("filePath"), contentType = CxHttpHelper.CONTENT_TYPE_OCTET_STREAM)
+        onProgress = { totalLength, currentLength ->
+            // TODO: Update progress 
+        }
+    }.await()
+```
+
 POST form、multipart
 
 ```kotlin
-	CxHttp.post("form url"){
+    CxHttp.post("form url"){
         formBody {
             append("name", "value")
         }
@@ -150,7 +162,7 @@ POST form、multipart
 HookRequest
 
 ```kotlin
-	CxHttpHelper.hookRequest { request ->
+    CxHttpHelper.hookRequest { request ->
         request.header("token", tokenInfo?.accessToken ?: "")
         request.param("id", "123456")
     }
@@ -159,7 +171,7 @@ HookRequest
 HookResponse
 
 ```kotlin
-	CxHttpHelper.hookResponse { response ->
+    CxHttpHelper.hookResponse { response ->
         if(response.code == 401){
             println("hookResponse： token失效，准备刷新并重试")
             tokenInfo = refreshToken()
@@ -174,7 +186,7 @@ HookResponse
 HookResult（Hook统一请求结果CxHttpResult<*>）
 
 ```kotlin
-	CxHttpHelper.hookResult { result: CxHttpResult<*> ->
+    CxHttpHelper.hookResult { result: CxHttpResult<*> ->
         result as MyHttpResult
         if(result.code == 401){
             println("hookResult： token失效，准备刷新并重试")
