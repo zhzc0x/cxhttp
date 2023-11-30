@@ -197,7 +197,18 @@ HookResult（Hook统一请求结果CxHttpResult<*>）
     }
 ```
 
+### 混淆配置
+
+```properties
+#CxHttp
+-keep class * extends cxhttp.response.CxHttpResult{*;}
+-keep class cxhttp.converter.*{*;}
+```
+
+
+
 # License
+
 Copyright 2023 zhzc0x
 
    Licensed under the Apache License, Version 2.0 (the "License");
