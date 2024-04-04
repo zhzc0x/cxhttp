@@ -47,7 +47,7 @@ class CxHttp private constructor(internal val request: Request, private val bloc
             return CxHttp(Request(url, method), block)
         }
 
-        fun request(request: Request): CxHttp{
+        fun request(request: Request): CxHttp {
             return CxHttp(request){}
         }
 
@@ -92,17 +92,17 @@ class CxHttp private constructor(internal val request: Request, private val bloc
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    suspend fun await(): Response = withContext(Dispatchers.IO){
+    suspend fun await(): Response = withContext(Dispatchers.IO) {
         awaitImpl()
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    suspend inline fun <reified T, reified RESULT: CxHttpResult<T>> awaitResult(): RESULT = withContext(Dispatchers.IO){
+    suspend inline fun <reified T, reified RESULT: CxHttpResult<T>> awaitResult(): RESULT = withContext(Dispatchers.IO) {
         awaitImpl().result<T, RESULT>()
     }
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    suspend inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> awaitResultList(): RESULT = withContext(Dispatchers.IO){
+    suspend inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> awaitResultList(): RESULT = withContext(Dispatchers.IO) {
         awaitImpl().resultList<T, RESULT>()
     }
 
@@ -127,19 +127,19 @@ class CxHttp private constructor(internal val request: Request, private val bloc
     }.flowOn(Dispatchers.IO)
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    suspend inline fun <reified T, reified RESULT: CxHttpResult<T>> resultAsFlow(): Flow<RESULT> = flow{
+    suspend inline fun <reified T, reified RESULT: CxHttpResult<T>> resultAsFlow(): Flow<RESULT> = flow {
         emit(awaitImpl().result<T, RESULT>())
     }.flowOn(Dispatchers.IO)
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    suspend inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> resultListAsFlow(): Flow<RESULT> = flow{
+    suspend inline fun <reified T, reified RESULT: CxHttpResult<List<T>>> resultListAsFlow(): Flow<RESULT> = flow {
         emit(awaitImpl().resultList<T, RESULT>())
     }.flowOn(Dispatchers.IO)
 
     @CxHttpHelper.InternalAPI
     suspend fun awaitImpl(): Response {
         var response = try {
-            if(!request.reCall){//避免重新请求时多次调用
+            if (!request.reCall) {//避免重新请求时多次调用
                 request.block()
             }
             // Hook and Execute request
@@ -148,11 +148,12 @@ class CxHttp private constructor(internal val request: Request, private val bloc
                 CxHttpHelper.call.await(it)
             }
         } catch (ie: IOException) {
-            Response(CxHttpHelper.FAILURE_CODE, CxHttpHelper.exToMessage(ie), null)
+            val failInfo = CxHttpHelper.exToFailInfo(ie)
+            Response(failInfo.code, failInfo.msg, null)
         }
         response.client = this
         response = CxHttpHelper.applyHookResponse(response)
-        if(response.reCall){
+        if (response.reCall) {
             return awaitImpl()
         }
         return response

@@ -65,29 +65,30 @@ class Request internal constructor(val url: String, val method: String) {
         _params!!.putAll(params)
     }
 
-    fun setBody(body: String, contentType: String = CxHttpHelper.CONTENT_TYPE_JSON){
+    fun setBody(body: String, contentType: String = CxHttpHelper.CONTENT_TYPE_JSON) {
         _body = StringBody(body, contentType)
     }
 
     fun <T> setBody(body: T, tType: Class<T>, contentType: String = CxHttpHelper.CONTENT_TYPE_JSON,
-                    bodyConverter: RequestBodyConverter? = null){
+                    bodyConverter: RequestBodyConverter? = null) {
         _body = EntityBody(body, tType, contentType)
         bodyConverter?.let { this.bodyConverter = it }
     }
 
-    fun setBody(body: File, contentType: String = CxHttpHelper.CONTENT_TYPE_OCTET_STREAM){
+    fun setBody(body: File, contentType: String = CxHttpHelper.CONTENT_TYPE_OCTET_STREAM) {
         _body = FileBody(body, contentType)
     }
 
-    fun setBody(body: ByteArray, contentType: String = CxHttpHelper.CONTENT_TYPE_OCTET_STREAM){
+    fun setBody(body: ByteArray, contentType: String = CxHttpHelper.CONTENT_TYPE_OCTET_STREAM) {
         _body = ByteArrayBody(body, contentType)
     }
 
-    fun formBody(block: FormBody.() -> Unit = {}){
+    fun formBody(block: FormBody.() -> Unit = {}) {
         _body = FormBody(mutableListOf(), CxHttpHelper.CONTENT_TYPE_FORM).apply(block)
     }
 
-    fun multipartBody(type: String = CxHttpHelper.CONTENT_TYPE_MULTIPART_FORM, block: MultipartBody.() -> Unit){
+    fun multipartBody(type: String = CxHttpHelper.CONTENT_TYPE_MULTIPART_FORM,
+                      block: MultipartBody.() -> Unit) {
         _body = MultipartBody(mutableListOf(), type).apply(block)
     }
 

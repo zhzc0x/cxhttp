@@ -12,7 +12,7 @@ interface HookResult {
         get() = response.client.request
 
     @OptIn(CxHttpHelper.InternalAPI::class)
-    fun CxHttpResult<*>.setReCall(){
+    fun CxHttpResult<*>.setReCall() {
         response.reCall = true
     }
 

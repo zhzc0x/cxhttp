@@ -9,14 +9,14 @@ import cxhttp.response.Response
 import java.lang.reflect.Type
 
 class GsonConverter(private var _gson: Gson? = null,
-                                              onConfiguration: GsonBuilder.() -> Unit = {}): CxHttpConverter {
+                    onConfiguration: GsonBuilder.() -> Unit = {}): CxHttpConverter {
 
     override val contentType: String = CxHttpHelper.CONTENT_TYPE_JSON
     private val gson: Gson
         get() = _gson!!
 
     init {
-        if(_gson == null){
+        if (_gson == null) {
             val builder = GsonBuilder().apply {
                 onConfiguration()
             }

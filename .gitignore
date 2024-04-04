@@ -42,5 +42,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+.idea/
 gradle.properties
 library/mavenSign.gpg

@@ -17,8 +17,7 @@ import java.net.SocketException
 import java.net.URLConnection
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLPeerUnverifiedException
-
+import javax.net.ssl.SSLException
 
 object CxHttpHelper {
 
@@ -35,13 +34,19 @@ object CxHttpHelper {
     const val CONTENT_TYPE_FORM = "application/x-www-form-urlencoded"
     const val CONTENT_TYPE_MULTIPART_FORM = "multipart/form-data"
 
+    var debugLog = false
     var SUCCESS_CODE = "0000"
-    var FAILURE_CODE = -1000
+
+    const val FAIL_CODE_UNKNOWN_HOST = -1001
+    const val FAIL_CODE_SSL_ERROR = -1002
+    const val FAIL_CODE_NET_TIMEOUT = -1003
+    const val FAIL_CODE_CONNECT_ERROR = -1004
+    const val FAIL_CODE_UNKNOWN_ERROR = -1005
+    const val FAIL_CODE_PARSER_ERROR = -1006
 
     internal lateinit var scope: CoroutineScope
     internal lateinit var call: CxHttpCall
     internal lateinit var converter: CxHttpConverter
-    internal var debugLog = false
     internal var hookRequest: HookRequest = HookInstance
     internal var hookResponse: suspend HookResponse.(Response) -> Response = {
         it
@@ -51,7 +56,7 @@ object CxHttpHelper {
     }
 
     @JvmOverloads
-    fun init(scope: CoroutineScope, debugLog: Boolean, call: CxHttpCall = Okhttp3Call{
+    fun init(scope: CoroutineScope, debugLog: Boolean, call: CxHttpCall = Okhttp3Call {
         callTimeout(15, TimeUnit.SECONDS)
         if (debugLog) {
             addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
@@ -64,15 +69,15 @@ object CxHttpHelper {
         this.converter = converter
     }
 
-    fun hookRequest(hookRequest: HookRequest){
+    fun hookRequest(hookRequest: HookRequest) {
         this.hookRequest = hookRequest
     }
 
-    fun hookResponse(hookResponse: suspend HookResponse.(Response) -> Response){
+    fun hookResponse(hookResponse: suspend HookResponse.(Response) -> Response) {
         this.hookResponse = hookResponse
     }
 
-    fun hookResult(hookResult: suspend HookResult.(CxHttpResult<*>) -> CxHttpResult<*>){
+    fun hookResult(hookResult: suspend HookResult.(CxHttpResult<*>) -> CxHttpResult<*>) {
         this.hookResult = hookResult
     }
 
@@ -97,31 +102,8 @@ object CxHttpHelper {
         return contentType.toMediaType()
     }
 
-    @InternalAPI
-    fun exToMessage(ex: Exception): String {
-        if(debugLog){
-            ex.printStackTrace()
-        }
-        val msg = when (ex) {
-            is UnknownHostException, is SSLPeerUnverifiedException -> {
-                "域名解析异常"
-            }
-            is InterruptedIOException, is SocketException -> {
-                "网络异常"
-            }
-            else -> {
-                "未知异常"
-            }
-        }
-        return if(ex.message != null){
-            "$msg：${ex.message}"
-        } else {
-            msg
-        }
-    }
-
-    internal fun mergeParamsToUrl(url: String, params: Map<String, Any>?): String{
-        return if(params != null){
+    internal fun mergeParamsToUrl(url: String, params: Map<String, Any>?): String {
+        return if (params != null) {
             val appendUrl = StringBuilder(url)
             val iterator = params.entries.iterator()
             appendUrl.append("?")
@@ -138,6 +120,37 @@ object CxHttpHelper {
             url
         }
     }
+
+    @InternalAPI
+    fun exToFailInfo(ex: Exception): FailInfo {
+        if (debugLog) {
+            ex.printStackTrace()
+        }
+        val failInfo = when (ex) {
+            is UnknownHostException -> {
+                FailInfo(FAIL_CODE_UNKNOWN_HOST, "域名解析异常")
+            }
+            is SSLException -> {
+                FailInfo(FAIL_CODE_SSL_ERROR, "SSL异常")
+            }
+            is InterruptedIOException -> {
+                FailInfo(FAIL_CODE_NET_TIMEOUT, "网络超时")
+            }
+            is SocketException -> {
+                FailInfo(FAIL_CODE_CONNECT_ERROR, "连接异常")
+            }
+            else -> {
+                FailInfo(FAIL_CODE_UNKNOWN_ERROR,  "未知异常")
+            }
+        }
+        if (ex.message != null) {
+            failInfo.msg = "${failInfo.msg}：${ex.message}"
+        }
+        return failInfo
+    }
+
+    @InternalAPI
+    data class FailInfo(val code: Int, var msg: String)
 
     @RequiresOptIn(
         level = RequiresOptIn.Level.ERROR,

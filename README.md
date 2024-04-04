@@ -171,20 +171,20 @@ HookRequest
 HookResponse
 
 ```kotlin
-    val mutexLock = Mutex()
+     val mutexLock = Mutex()
 	CxHttpHelper.hookResponse { response ->
-        //加锁防止多次重复刷新
-            if (!mutexLock.isLocked) {
-                mutexLock.withLock {
-                    println("hookResponse： token失效，准备刷新并重试")
-                    tokenInfo = refreshToken()
-                    response.setReCall()//设置重新请求
-                }
-            } else {
-                mutexLock.withLock {
-                    response.setReCall()
-                }
+        //可以加锁防止多次重复刷新
+        if (!mutexLock.isLocked) {
+            mutexLock.withLock {
+                println("hookResponse： token失效，准备刷新并重试")
+                tokenInfo = refreshToken()
+                response.setReCall()//设置重新请求
             }
+        } else {
+            mutexLock.withLock {
+                response.setReCall()
+            }
+        }    
         response
     }
 ```
@@ -194,7 +194,6 @@ HookResponse
 HookResult（Hook统一请求结果CxHttpResult<*>）
 
 ```kotlin
-    val mutexLock = Mutex()
 	CxHttpHelper.hookResult { result: CxHttpResult<*> ->
         result as MyHttpResult
         if (result.code == 401) {

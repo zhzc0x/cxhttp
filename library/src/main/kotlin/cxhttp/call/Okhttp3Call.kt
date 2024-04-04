@@ -14,13 +14,13 @@ import kotlin.coroutines.resumeWithException
 
 
 class Okhttp3Call(private var _okHttpClient: OkHttpClient? = null,
-                                            onConfiguration: OkHttpClient.Builder.() -> Unit = {}): CxHttpCall {
+                  onConfiguration: OkHttpClient.Builder.() -> Unit = {}): CxHttpCall {
 
     private val okHttpClient: OkHttpClient
         get() = _okHttpClient!!
 
     init {
-        if(_okHttpClient == null){
+        if (_okHttpClient == null) {
             val clientBuilder = OkHttpClient.Builder()
             clientBuilder.onConfiguration()
             _okHttpClient = clientBuilder.build()
@@ -36,7 +36,7 @@ class Okhttp3Call(private var _okHttpClient: OkHttpClient? = null,
                         return
                     }
                     continuation.resume(Response(response.code, response.message, response.body?.let {
-                        object: Response.Body(){
+                        object: Response.Body() {
                             override fun string(): String {
                                 return it.string()
                             }

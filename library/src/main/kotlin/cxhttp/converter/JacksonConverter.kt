@@ -1,3 +1,5 @@
+
+
 package cxhttp.converter
 
 import com.fasterxml.jackson.annotation.JsonInclude
@@ -22,7 +24,7 @@ class JacksonConverter(private var _jsonMapper: JsonMapper? = null,
         get() = _jsonMapper!!
 
     init {
-        if(_jsonMapper == null){
+        if (_jsonMapper == null) {
             val builder = JsonMapper.builder().apply {
                 configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 configure(JsonWriteFeature.WRITE_NAN_AS_STRINGS, true)

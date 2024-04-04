@@ -15,13 +15,13 @@ import java.io.IOException
 
 fun Request.buildOkhttp3Request(): okhttp3.Request {
     val builder = okhttp3.Request.Builder().url(url)
-    if(mergeParamsToUrl){
+    if (mergeParamsToUrl) {
         builder.url(CxHttpHelper.mergeParamsToUrl(url, params))
     } else {
         builder.url(url)
     }
     headers?.forEach { builder.addHeader(it.key, it.value) }
-    var okhttpReqBody = when(body){
+    var okhttpReqBody = when(body) {
         is StringBody -> {
             (body as StringBody).content.toRequestBody(body!!.contentType.toMediaTypeOrNull())
         }
@@ -39,7 +39,7 @@ fun Request.buildOkhttp3Request(): okhttp3.Request {
             val formBody = body as FormBody
             params?.forEach { formBody.content.add(StringPart(it.key, it.value.toString())) }
             val bodyBuilder = okhttp3.FormBody.Builder()
-            if(formBody.encoded){
+            if (formBody.encoded) {
                 formBody.content.forEach{ bodyBuilder.add(it.name, it.value!!) }
             } else {
                 formBody.content.forEach{ bodyBuilder.addEncoded(it.name, it.value!!) }
@@ -50,14 +50,14 @@ fun Request.buildOkhttp3Request(): okhttp3.Request {
             val multipartBody = body as MultipartBody
             params?.forEach { multipartBody.content.add(StringPart(it.key, it.value.toString())) }
             val bodyBuilder = okhttp3.MultipartBody.Builder().setType(body!!.contentType.toMediaType())
-            for(part in multipartBody.content){
+            for (part in multipartBody.content) {
                 when(part){
                     is StringPart -> {
                         bodyBuilder.addFormDataPart(part.name, part.value)
                     }
                     is FilePart -> {
                         if (!part.data.exists() || !part.data.isFile) continue
-                        val requestBody = if(part.contentType != null){
+                        val requestBody = if (part.contentType != null) {
                             part.data.asRequestBody(part.contentType.toMediaTypeOrNull())
                         } else {
                             part.data.asRequestBody(CxHttpHelper.getMediaType(part.data.name))
@@ -72,7 +72,7 @@ fun Request.buildOkhttp3Request(): okhttp3.Request {
             bodyBuilder.build()
         }
         else -> {
-            if(!mergeParamsToUrl && params != null){
+            if (!mergeParamsToUrl && params != null) {
                 bodyConverter.convert(params, Map::class.java).toRequestBody(bodyConverter.contentType.toMediaTypeOrNull())
             } else {
                 null
@@ -85,7 +85,8 @@ fun Request.buildOkhttp3Request(): okhttp3.Request {
     return builder.method(method, okhttpReqBody).tag(tag).build()
 }
 
-internal class ProgressOkHttp3RequestBody(private val requestBody: RequestBody, private val onProgress: (Long, Long) -> Unit): RequestBody() {
+internal class ProgressOkHttp3RequestBody(private val requestBody: RequestBody,
+                                          private val onProgress: (Long, Long) -> Unit): RequestBody() {
 
     @Throws(IOException::class)
     override fun contentLength(): Long {

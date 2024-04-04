@@ -2,23 +2,25 @@ package cxhttp.request
 
 import java.io.File
 
-sealed interface Body<out T>{
+sealed interface Body<out T> {
     val content: T
     val contentType: String
 }
 
-class StringBody internal constructor(override val content: String, override val contentType: String): Body<String>
+class StringBody internal constructor(override val content: String,
+                                      override val contentType: String): Body<String>
 
-class FileBody internal constructor(override val content: File, override val contentType: String): Body<File>
+class FileBody internal constructor(override val content: File,
+                                    override val contentType: String): Body<File>
 
-class ByteArrayBody internal constructor(override val content: ByteArray, override val contentType: String):
-    Body<ByteArray>
+class ByteArrayBody internal constructor(override val content: ByteArray,
+                                         override val contentType: String): Body<ByteArray>
 
-class EntityBody<T> internal constructor(override val content: T, val tType: Class<T>, override val contentType: String):
-    Body<T>
+class EntityBody<T> internal constructor(override val content: T, val tType: Class<T>,
+                                         override val contentType: String): Body<T>
 
-class FormBody internal constructor(override val content: MutableList<PartData>, override val contentType: String):
-    Body<List<PartData>> {
+class FormBody internal constructor(override val content: MutableList<PartData>,
+                                    override val contentType: String): Body<List<PartData>> {
 
     var encoded = false
 
@@ -27,22 +29,22 @@ class FormBody internal constructor(override val content: MutableList<PartData>,
     }
 
     fun appends(map: Map<String, String>) {
-        for((name, value) in map){
+        for ((name, value) in map) {
             content += StringPart(name, value)
         }
     }
 
 }
 
-class MultipartBody internal constructor (override val content: MutableList<PartData>, override val contentType: String):
-    Body<List<PartData>> {
+class MultipartBody internal constructor (override val content: MutableList<PartData>,
+                                          override val contentType: String): Body<List<PartData>> {
 
     fun append(name: String, value: String) {
         content += StringPart(name, value)
     }
 
     fun appends(map: Map<String, String>) {
-        for((name, value) in map){
+        for ((name, value) in map) {
             content += StringPart(name, value)
         }
     }
