@@ -46,7 +46,7 @@ Coroutine Extensions Http（协程扩展Http框架）
 - 支持okhttp3相关配置可直接通过Okhttp3Call配置，代码示例如下：
 
   ```kotlin
-  val okhttp3Call = Okhttp3Call{
+  val okhttp3Call = Okhttp3Call {
       callTimeout(15, TimeUnit.SECONDS)
       addInterceptor(CallServerInterceptor())
       ......
@@ -78,7 +78,7 @@ dependencies {
 初始化全局配置
 
 ```kotlin
-    val okhttp3Call = Okhttp3Call{
+    val okhttp3Call = Okhttp3Call {
         callTimeout(15, TimeUnit.SECONDS)
         addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
     }    
@@ -91,7 +91,7 @@ GET请求
 ```kotlin
     val job = CxHttp.get("https://www.baidu.com")
          //此处可指定协程，不指定默认使用CxHttpHelper.scope
-        .scope(this).launch{ response ->
+        .scope(this).launch { response ->
             if(response.body != null){
                 println("resultGet1: ${response.body<String>()}")
             } else {
@@ -109,7 +109,7 @@ GET请求
 POST请求
 
 ```kotlin
-    CxHttp.post(TEST_URL_USER_UPDATE){
+    CxHttp.post(TEST_URL_USER_UPDATE) {
         //You can set params or body
         params(mapOf(
             "name" to "zhangzicheng",
@@ -119,13 +119,13 @@ POST请求
         setBody(UserInfo("zhangzicheng", 32, "男", "农民"), UserInfo::class.java)
         //可单独设置requestBodyConverter，自定义实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()设置的全局converter
         bodyConverter = jacksonConverter
-    }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
+    }.launchResult<UserInfo, MyHttpResult<UserInfo>> { resultPost1 ->
         println("resultPost1: $resultPost1")
     }
     CxHttp.post(TEST_URL_USER_PROJECTS){
         param("page", 1)
         param("pageSize", 2)
-    }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost2 ->
+    }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>> { resultPost2 ->
         println("resultPost2: $resultPost2")
     }
 ```
@@ -133,7 +133,7 @@ POST请求
 POST文件
 
 ```kotlin
-    CxHttp.post("Upload url"){
+    CxHttp.post("Upload url") {
         delay(3000)
         setBody(File("filePath"), contentType = CxHttpHelper.CONTENT_TYPE_OCTET_STREAM)
         onProgress = { totalLength, currentLength ->
@@ -145,12 +145,12 @@ POST文件
 POST form、multipart
 
 ```kotlin
-    CxHttp.post("form url"){
+    CxHttp.post("form url") {
         formBody {
             append("name", "value")
         }
     }.await().isSuccessful
-    CxHttp.post("multipart url"){
+    CxHttp.post("multipart url") {
         multipartBody {
             append("name", "value")
             append("name", "filename", "filepath")
@@ -171,12 +171,20 @@ HookRequest
 HookResponse
 
 ```kotlin
-    CxHttpHelper.hookResponse { response ->
-        if(response.code == 401){
-            println("hookResponse： token失效，准备刷新并重试")
-            tokenInfo = refreshToken()
-            response.setReCall()//设置重新请求
-        }
+    val mutexLock = Mutex()
+	CxHttpHelper.hookResponse { response ->
+        //加锁防止多次重复刷新
+            if (!mutexLock.isLocked) {
+                mutexLock.withLock {
+                    println("hookResponse： token失效，准备刷新并重试")
+                    tokenInfo = refreshToken()
+                    response.setReCall()//设置重新请求
+                }
+            } else {
+                mutexLock.withLock {
+                    response.setReCall()
+                }
+            }
         response
     }
 ```
@@ -186,9 +194,10 @@ HookResponse
 HookResult（Hook统一请求结果CxHttpResult<*>）
 
 ```kotlin
-    CxHttpHelper.hookResult { result: CxHttpResult<*> ->
+    val mutexLock = Mutex()
+	CxHttpHelper.hookResult { result: CxHttpResult<*> ->
         result as MyHttpResult
-        if(result.code == 401){
+        if (result.code == 401) {
             println("hookResult： token失效，准备刷新并重试")
             tokenInfo = refreshToken()
             result.setReCall()//设置重新请求

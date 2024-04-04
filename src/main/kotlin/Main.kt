@@ -12,6 +12,8 @@ import cxhttp.response.CxHttpResult
 import cxhttp.response.body
 import cxhttp.response.bodyOrNull
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -67,7 +69,7 @@ const val TEST_URL_USER_PROJECTS = "test://www.******.com/user/projects"
 const val TEST_URL_TOKEN_REFRESH = "test://www.******.com/token/refresh"
 
 fun main(args: Array<String>) {
-    val okhttp3Call = Okhttp3Call{
+    val okhttp3Call = Okhttp3Call {
         callTimeout(15, TimeUnit.SECONDS)
         addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
     }
@@ -79,21 +81,39 @@ fun main(args: Array<String>) {
         request.header("token", tokenInfo?.accessToken ?: "")
         request.param("id", "123456")
     }
+
+    val mutexLock = Mutex()
     //hookResponse可以预处理请求结果，例如token失效自动刷新并重试功能、制作假数据测试等等
     CxHttpHelper.hookResponse { response ->
-        if(response.code == 401){
-            println("hookResponse： token失效，准备刷新并重试")
-            tokenInfo = refreshToken()
-            response.setReCall()//设置重新请求
+        if (response.code == 401) {
+            //加锁防止多次重复刷新
+            if (!mutexLock.isLocked) {
+                mutexLock.withLock {
+                    println("hookResponse： token失效，准备刷新并重试")
+                    tokenInfo = refreshToken()
+                    response.setReCall()//设置重新请求
+                }
+            } else {
+                mutexLock.withLock {
+                    response.setReCall()
+                }
+            }
         }
         response
     }
     CxHttpHelper.hookResult { result: CxHttpResult<*> ->
         result as MyHttpResult
-        if(result.code == 401){
-            println("hookResult： token失效，准备刷新并重试")
-            tokenInfo = refreshToken()
-            result.setReCall()//设置重新请求
+        if (result.code == 401) {
+            //加锁防止多次重复刷新
+            if (mutexLock.isLocked) {
+                mutexLock.withLock {
+                    result.setReCall()
+                }
+            } else {
+                println("hookResult： token失效，准备刷新并重试")
+                tokenInfo = refreshToken()
+                result.setReCall()//设置重新请求
+            }
         }
         result
     }
@@ -101,7 +121,7 @@ fun main(args: Array<String>) {
         val job = CxHttp.get("https://www.baidu.com")
             //此处可指定协程，不指定默认使用CxHttpHelper.scope
             .scope(this)
-            .launch{ response ->
+            .launch { response ->
                 println("response1=$response")
                 if(response.body != null){
                     println("resultGet1: ${response.body<String>()}")
@@ -117,10 +137,11 @@ fun main(args: Array<String>) {
         val resultGet3: String? = resultDeferred.await().bodyOrNull()
         println("resultGet3: $resultGet3")
 
-        CxHttp.get(TEST_URL_USER_PROJECTS).resultListAsFlow<ProjectInfo, MyHttpResult<List<ProjectInfo>>>().collect{
+        CxHttp.get(TEST_URL_USER_PROJECTS).resultListAsFlow<ProjectInfo, MyHttpResult<List<ProjectInfo>>>().collect {
             println("resultListAsFlow: ${it.data}")
         }
 
+        tokenInfo = null
         CxHttp.post(TEST_URL_USER_UPDATE){
             //You can set params or body
             params(mapOf(
@@ -131,22 +152,22 @@ fun main(args: Array<String>) {
             setBody(UserInfo("zhangzicheng", 32, "男", "农民"), UserInfo::class.java)
             //可单独设置requestBodyConverter，自定义实现RequestBodyConverter接口即可，默认使用CxHttpHelper.init()设置的全局converter
             bodyConverter = jacksonConverter
-        }.launchResult<UserInfo, MyHttpResult<UserInfo>>{ resultPost1 ->
+        }.launchResult<UserInfo, MyHttpResult<UserInfo>> { resultPost1 ->
             println("resultPost1: ${resultPost1.data!!.occupation}")
         }
-        CxHttp.post(TEST_URL_USER_PROJECTS){
+        CxHttp.post(TEST_URL_USER_PROJECTS) {
             param("page", 1)
             param("pageSize", 2)
-        }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>>{ resultPost2 ->
+        }.launchResultList<ProjectInfo, MyHttpResult<List<ProjectInfo>>> { resultPost2 ->
             println("resultPost2: $resultPost2")
         }
 
-        CxHttp.post("form url"){
+        CxHttp.post("form url") {
             formBody {
                 append("name", "value")
             }
         }.await().isSuccessful
-        CxHttp.post("multipart url"){
+        CxHttp.post("multipart url") {
             multipartBody {
                 append("name", "value")
                 append("name", "filename", "filepath")
@@ -157,7 +178,7 @@ fun main(args: Array<String>) {
     }
 }
 
-private suspend fun refreshToken(): TokenInfo?{
+private suspend fun refreshToken(): TokenInfo? {
     val tokenInfoResult: MyHttpResult<TokenInfo> = CxHttp.post(TEST_URL_TOKEN_REFRESH).awaitResult()
     return tokenInfoResult.data
 }
