@@ -1,6 +1,6 @@
 package cxhttp.converter
 
-import cxhttp.CxHttpHelper
+import cxhttp.annotation.InternalAPI
 import cxhttp.response.CxHttpResult
 import cxhttp.response.Response
 import java.lang.reflect.Type
@@ -13,7 +13,7 @@ interface ResponseConverter {
 
     fun <T, RESULT: CxHttpResult<List<T>>> convertResultList(body: Response.Body, resultType: Class<RESULT>, tType: Type): RESULT
 
-    @CxHttpHelper.InternalAPI
+    @InternalAPI
     fun <RESULT: CxHttpResult<*>> convertResult(code: String, msg: String, data: Any? = null, resultType: Class<RESULT>): RESULT {
         val httpResult = try {
             val constructor = resultType.getConstructor(String::class.java, String::class.java, Any::class.java)

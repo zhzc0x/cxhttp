@@ -1,5 +1,6 @@
 package cxhttp
 
+import cxhttp.annotation.InternalAPI
 import cxhttp.call.CxHttpCall
 import cxhttp.call.Okhttp3Call
 import cxhttp.converter.CxHttpConverter
@@ -151,19 +152,5 @@ object CxHttpHelper {
 
     @InternalAPI
     data class FailInfo(val code: Int, var msg: String)
-
-    @RequiresOptIn(
-        level = RequiresOptIn.Level.ERROR,
-        message = "This API is internal in CxHttp and should not be used. It could be removed or changed without notice."
-    )
-    @Target(
-        AnnotationTarget.CLASS,
-        AnnotationTarget.TYPEALIAS,
-        AnnotationTarget.FUNCTION,
-        AnnotationTarget.PROPERTY,
-        AnnotationTarget.FIELD,
-        AnnotationTarget.CONSTRUCTOR
-    )
-    internal annotation class InternalAPI
 
 }

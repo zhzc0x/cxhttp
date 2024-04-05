@@ -1,6 +1,7 @@
 package cxhttp.response
 
 import cxhttp.CxHttpHelper
+import cxhttp.annotation.InternalAPI
 
 /**
  * CxHttp所有请求返回的结果基类，T为任意类型，默认实现 @see HttpResult
@@ -12,7 +13,7 @@ import cxhttp.CxHttpHelper
 abstract class CxHttpResult<T>(private val cxCode: String,
                                private val cxMsg: String,
                                private val cxData: T?) {
-    @CxHttpHelper.InternalAPI
+    @InternalAPI
     lateinit var response: Response
     val success: Boolean = cxCode == CxHttpHelper.SUCCESS_CODE
 }

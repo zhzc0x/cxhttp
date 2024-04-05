@@ -92,7 +92,7 @@ GET请求
     val job = CxHttp.get("https://www.baidu.com")
          //此处可指定协程，不指定默认使用CxHttpHelper.scope
         .scope(this).launch { response ->
-            if(response.body != null){
+            if (response.body != null) {
                 println("resultGet1: ${response.body<String>()}")
             } else {
                 // TODO: Can do some exception handling
@@ -171,8 +171,8 @@ HookRequest
 HookResponse
 
 ```kotlin
-     val mutexLock = Mutex()
-	CxHttpHelper.hookResponse { response ->
+    val mutexLock = Mutex()
+    CxHttpHelper.hookResponse { response ->
         //可以加锁防止多次重复刷新
         if (!mutexLock.isLocked) {
             mutexLock.withLock {
@@ -194,7 +194,7 @@ HookResponse
 HookResult（Hook统一请求结果CxHttpResult<*>）
 
 ```kotlin
-	CxHttpHelper.hookResult { result: CxHttpResult<*> ->
+    CxHttpHelper.hookResult { result: CxHttpResult<*> ->
         result as MyHttpResult
         if (result.code == 401) {
             println("hookResult： token失效，准备刷新并重试")

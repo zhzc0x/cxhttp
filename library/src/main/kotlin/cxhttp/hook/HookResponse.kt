@@ -1,6 +1,6 @@
 package cxhttp.hook
 
-import cxhttp.CxHttpHelper
+import cxhttp.annotation.InternalAPI
 import cxhttp.request.Request
 import cxhttp.response.Response
 
@@ -10,11 +10,11 @@ import cxhttp.response.Response
  * */
 interface HookResponse {
 
-    @OptIn(CxHttpHelper.InternalAPI::class)
+    @OptIn(InternalAPI::class)
     val Response.request: Request
         get() = client.request
 
-    @OptIn(CxHttpHelper.InternalAPI::class)
+    @OptIn(InternalAPI::class)
     fun Response.setReCall() {
         this.reCall = true
     }

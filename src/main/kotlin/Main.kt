@@ -11,6 +11,7 @@ import cxhttp.converter.JacksonConverter
 import cxhttp.response.CxHttpResult
 import cxhttp.response.body
 import cxhttp.response.bodyOrNull
+import cxhttp.response.result
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -134,7 +135,7 @@ fun main(args: Array<String>) {
         println("resultGet2: $resultGet2")
 
         val resultDeferred = CxHttp.get("https://www.baidu.com").async()
-        val resultGet3: String? = resultDeferred.await().bodyOrNull()
+        val resultGet3 = resultDeferred.await().result<String, MyHttpResult<String>>()
         println("resultGet3: $resultGet3")
 
         CxHttp.get(TEST_URL_USER_PROJECTS).resultListAsFlow<ProjectInfo, MyHttpResult<List<ProjectInfo>>>().collect {
