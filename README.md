@@ -64,7 +64,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.zhzc0x.cxhttp:cxhttp:1.2.2")
+    implementation("com.zhzc0x.cxhttp:cxhttp:1.2.4")
     //默认网络请求库Okhttp3Call，如果使用其它网络库可去掉
     implementation("com.squareup.okhttp3:okhttp:4.9.3")//最新版本不兼容Android4.4
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
