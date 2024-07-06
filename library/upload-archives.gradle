@@ -51,8 +51,8 @@ publishing {
             def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
             url = pomVersion.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
             credentials {
-                username ossUsername // ossUsername is your sonatype username
-                password ossPassword // ossPassword is your sonatype password
+                username userId // ossUsername is your sonatype username
+                password userToken // ossPassword is your sonatype password
             }
         }
     }
