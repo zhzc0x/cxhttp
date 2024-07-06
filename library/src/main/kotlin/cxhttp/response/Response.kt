@@ -6,6 +6,7 @@ import cxhttp.annotation.InternalAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
+import java.io.Reader
 
 data class Response(val code: Int, val message: String, val body: Body?) {
 
@@ -26,6 +27,10 @@ data class Response(val code: Int, val message: String, val body: Body?) {
         abstract fun string(): String
 
         open fun bytes(): ByteArray {
+            throw IllegalArgumentException("当前Body不支持此数据类型！")
+        }
+
+        open fun charStream(): Reader {
             throw IllegalArgumentException("当前Body不支持此数据类型！")
         }
 

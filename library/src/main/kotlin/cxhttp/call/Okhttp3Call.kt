@@ -9,6 +9,7 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import java.io.IOException
 import java.io.InputStream
+import java.io.Reader
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -42,6 +43,9 @@ class Okhttp3Call(private var _okHttpClient: OkHttpClient? = null,
                             }
                             override fun bytes(): ByteArray {
                                 return it.bytes()
+                            }
+                            override fun charStream(): Reader {
+                                return it.charStream()
                             }
                             override fun byteStream(): InputStream {
                                 return it.byteStream()
